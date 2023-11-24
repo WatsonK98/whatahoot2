@@ -11,13 +11,13 @@ class CreateQRPage extends StatefulWidget {
 
 class _CreateQRPageState extends State<CreateQRPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  late String _code;
+  late Future<String> _joinCode;
 
   @override
   void initState() {
     super.initState();
-    _code = _prefs.then((SharedPreferences prefs) {
-      return prefs.getString('joinCode');
+    _joinCode = _prefs.then((SharedPreferences prefs) {
+      return prefs.getString('joinCode') ?? '';
     });
   }
 
@@ -28,27 +28,41 @@ class _CreateQRPageState extends State<CreateQRPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('QR'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          QrImageView(
-            data: '123',
-            version: QrVersions.auto,
-            size: 200,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text('123'),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('Continue')
-              ),
-            ],
-          )
-        ],
+      body: Center(
+        child: FutureBuilder(
+          future: _joinCode,
+          builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                return const CircularProgressIndicator();
+              case ConnectionState.active:
+              case ConnectionState.done:
+                if(snapshot.hasError) {
+                  return const Text('Error loading QR code');
+                } else {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      QrImageView(
+                        data: '$snapshot.data',
+                        version: QrVersions.auto,
+                        size: 220,
+                      ),
+                      const SizedBox(height: 16),
+                      Text("${snapshot.data}", style: const TextStyle(fontSize: 45, fontWeight: FontWeight.bold)),
+                      ElevatedButton(
+                        onPressed: () {
+
+                        },
+                        child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                      ),
+                    ],
+                  );
+                }
+            }
+          }
+        ),
       ),
     );
   }
