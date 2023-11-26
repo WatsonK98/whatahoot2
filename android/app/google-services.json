@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "588141268514",
+    "project_id": "whatahoot2-71b79",
+    "storage_bucket": "whatahoot2-71b79.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:588141268514:android:7909624d74b9deb2c3847b",
+        "android_client_info": {
+          "package_name": "com.example.whatahoot2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSOzN-HhR0ysFb_irv4_CCnCvGhNfp5gY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
