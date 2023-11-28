@@ -13,12 +13,27 @@ class CreateQRPage extends StatefulWidget {
 class _CreateQRPageState extends State<CreateQRPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   late Future<String> _joinCode;
+  late int _playerCount = 1;
+
+  Future<void> _startGame() async {
+    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$_joinCode');
+    gameStartRef.set({
+      'gameStart': true
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _joinCode = _prefs.then((SharedPreferences prefs) {
       return prefs.getString('joinCode') ?? '';
+    });
+
+    DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$_joinCode/players');
+    playersRef.onChildAdded.listen((event) {
+      setState(() {
+        _playerCount++;
+      });
     });
   }
 
@@ -52,9 +67,14 @@ class _CreateQRPageState extends State<CreateQRPage> {
                       ),
                       const SizedBox(height: 16),
                       Text("${snapshot.data}", style: const TextStyle(fontSize: 45, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      Text('$_playerCount', style: const TextStyle(fontSize: 55)),
+                      const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
+                          _startGame().then((_) {
 
+                          });
                         },
                         child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                       ),

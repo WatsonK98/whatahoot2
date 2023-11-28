@@ -33,25 +33,34 @@ class _CreateGamePageState extends State<CreateGamePage> {
       _joinCode = getRandomString(5);
     });
 
-    await prefs.setString('nickName', _textEditingController.text);
+    await prefs.setString('nickname', _textEditingController.text);
     await prefs.setString('joinCode', _joinCode);
   }
 
   ///Create the server for the game state
   Future<void> _createServer() async {
-    final SharedPreferences prefs = await _prefs;
-    final String nickName = _textEditingController.text;
 
-    //Sign the player in to get a unique ID
+    //Sign the player in to write to the database
     FirebaseAuth.instance.signInAnonymously();
 
-    //Initialize the database location with the host set to 0
-    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$_joinCode/players/0');
+    //Initialize the database with the join code as the server ID
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(_joinCode);
     serverRef.set({
-      'nickname': nickName,
-      'uid': FirebaseAuth.instance.currentUser?.uid,
+      'gameStart': false,
+      'players': {}
+    });
+  }
+
+  Future<void> _addPlayer() async {
+    final String nickname = _textEditingController.text;
+    final String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$_joinCode/players/$uid');
+    playerRef.set({
+      'nickname': nickname,
       'score': 0
     });
+
   }
 
   ///Dispose clears the controller and any other listeners except for
@@ -89,9 +98,11 @@ class _CreateGamePageState extends State<CreateGamePage> {
               if (_textEditingController.text.isNotEmpty) {
                 _createJoinCode().then((_) {
                   _createServer().then((_) {
-                    Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => const CreateQRPage())
-                    );
+                    _addPlayer().then((_) {
+                      Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => const CreateQRPage())
+                      );
+                    });
                   });
                 });
               }
