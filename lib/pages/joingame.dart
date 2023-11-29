@@ -16,26 +16,25 @@ class _JoinGamePageState extends State<JoinGamePage> {
   final TextEditingController _joinCodeController = TextEditingController();
   final TextEditingController _nickNameController = TextEditingController();
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
-  Barcode? _result;
-  QRViewController? _controller;
-
-  void _onQRViewCreated(QRViewController controller) {
-    _controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        _result = scanData;
-        _joinCodeController.text = scanData.toString();
-      });
-    });
-  }
+  Barcode? result;
+  QRViewController? controller;
 
   Future<void> _signIn() async {
     await FirebaseAuth.instance.signInAnonymously();
   }
 
+  void _onQRViewCreated(QRViewController controller) {
+    controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        _joinCodeController.text = scanData.code!;
+      });
+      controller.stopCamera();
+    });
+  }
+
   @override
   void dispose() {
-    _controller?.dispose();
     _joinCodeController.dispose();
     _nickNameController.dispose();
     super.dispose();
