@@ -21,6 +21,14 @@ class _JoinGamePageState extends State<JoinGamePage> {
 
   Future<void> _signIn() async {
     await FirebaseAuth.instance.signInAnonymously();
+    final String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+    String joinCode = _joinCodeController.text;
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$joinCode/players/$uid');
+    await playerRef.set({
+      'nickname': _nickNameController.text,
+      'score': 0
+    });
   }
 
   void _onQRViewCreated(QRViewController controller) {
