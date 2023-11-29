@@ -49,6 +49,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '588141268514',
     projectId: 'whatahoot2-71b79',
     authDomain: 'whatahoot2-71b79.firebaseapp.com',
+    databaseURL: 'https://whatahoot2-71b79-default-rtdb.firebaseio.com',
     storageBucket: 'whatahoot2-71b79.appspot.com',
     measurementId: 'G-K2M708LGN9',
   );
@@ -58,6 +59,7 @@ class DefaultFirebaseOptions {
     appId: '1:588141268514:android:7909624d74b9deb2c3847b',
     messagingSenderId: '588141268514',
     projectId: 'whatahoot2-71b79',
+    databaseURL: 'https://whatahoot2-71b79-default-rtdb.firebaseio.com',
     storageBucket: 'whatahoot2-71b79.appspot.com',
   );
 
@@ -66,6 +68,7 @@ class DefaultFirebaseOptions {
     appId: '1:588141268514:ios:db6ce7e4d52d8928c3847b',
     messagingSenderId: '588141268514',
     projectId: 'whatahoot2-71b79',
+    databaseURL: 'https://whatahoot2-71b79-default-rtdb.firebaseio.com',
     storageBucket: 'whatahoot2-71b79.appspot.com',
     iosBundleId: 'com.example.whatahoot2',
   );
@@ -75,6 +78,7 @@ class DefaultFirebaseOptions {
     appId: '1:588141268514:ios:52ca5a5c5d0f7182c3847b',
     messagingSenderId: '588141268514',
     projectId: 'whatahoot2-71b79',
+    databaseURL: 'https://whatahoot2-71b79-default-rtdb.firebaseio.com',
     storageBucket: 'whatahoot2-71b79.appspot.com',
     iosBundleId: 'com.example.whatahoot2.RunnerTests',
   );

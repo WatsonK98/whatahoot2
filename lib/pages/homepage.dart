@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (context) => const JoinGamePage())
                 );
               },
-              child: const Text('Join Game'),
+              child: const Text('Join Game', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
                     MaterialPageRoute(builder: (context) => const CreateGamePage())
                 );
               },
-              child: const Text('Create Game')
+              child: const Text('Create Game', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
             ),
           ],
         ),

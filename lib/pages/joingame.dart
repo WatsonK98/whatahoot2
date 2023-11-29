@@ -13,7 +13,8 @@ class JoinGamePage extends StatefulWidget {
 
 class _JoinGamePageState extends State<JoinGamePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  final TextEditingController _textEditingController = TextEditingController();
+  final TextEditingController _joinCodeController = TextEditingController();
+  final TextEditingController _nickNameController = TextEditingController();
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? _result;
   QRViewController? _controller;
@@ -23,18 +24,20 @@ class _JoinGamePageState extends State<JoinGamePage> {
     controller.scannedDataStream.listen((scanData) {
       setState(() {
         _result = scanData;
+        _joinCodeController.text = scanData.toString();
       });
     });
   }
 
   Future<void> _signIn() async {
-
+    await FirebaseAuth.instance.signInAnonymously();
   }
 
   @override
   void dispose() {
     _controller?.dispose();
-    _textEditingController.dispose();
+    _joinCodeController.dispose();
+    _nickNameController.dispose();
     super.dispose();
   }
 
@@ -45,29 +48,57 @@ class _JoinGamePageState extends State<JoinGamePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Join'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Expanded(
-            flex: 1,
-            child: QRView(
-                key: _qrKey,
-                onQRViewCreated: _onQRViewCreated,
-            )
-          ),
-          SizedBox(
-            width: 200,
-            child: TextField(
-              controller: _textEditingController,
-              decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter a nickname'
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(height: 16),
+              SizedBox(
+                  height: 250,
+                  width: 250,
+                  child: QRView(
+                    key: _qrKey,
+                    onQRViewCreated: _onQRViewCreated,
+                  )
               ),
-              maxLength: 8,
-            ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 200,
+                child: TextField(
+                  controller: _joinCodeController,
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter join code'
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 200,
+                child: TextField(
+                  controller: _nickNameController,
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter a nickname'
+                  ),
+                  maxLength: 8,
+                ),
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    if (_joinCodeController.text.isNotEmpty && _nickNameController.text.isNotEmpty) {
+                      _signIn().then((_) {
+
+                      });
+                    }
+                  },
+                  child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      )
     );
   }
 }

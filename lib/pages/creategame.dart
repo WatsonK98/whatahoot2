@@ -29,6 +29,7 @@ class _CreateGamePageState extends State<CreateGamePage> {
   ///indexing of online resources
   Future<void> _createJoinCode() async {
     final SharedPreferences prefs = await _prefs;
+
     setState(() {
       _joinCode = getRandomString(5);
     });
@@ -41,11 +42,11 @@ class _CreateGamePageState extends State<CreateGamePage> {
   Future<void> _createServer() async {
 
     //Sign the player in to write to the database
-    FirebaseAuth.instance.signInAnonymously();
+    await FirebaseAuth.instance.signInAnonymously();
 
     //Initialize the database with the join code as the server ID
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(_joinCode);
-    serverRef.set({
+    await serverRef.set({
       'gameStart': false,
       'players': {}
     });
@@ -56,7 +57,7 @@ class _CreateGamePageState extends State<CreateGamePage> {
     final String? uid = FirebaseAuth.instance.currentUser?.uid;
 
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$_joinCode/players/$uid');
-    playerRef.set({
+    await playerRef.set({
       'nickname': nickname,
       'score': 0
     });
@@ -78,38 +79,41 @@ class _CreateGamePageState extends State<CreateGamePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Create Game'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          SizedBox(
-            width: 200,
-            child: TextField(
-              controller: _textEditingController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter a nickname'
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              width: 200,
+              child: TextField(
+                controller: _textEditingController,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter a nickname'
+                ),
+                maxLength: 8,
               ),
-              maxLength: 8,
             ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              if (_textEditingController.text.isNotEmpty) {
-                _createJoinCode().then((_) {
-                  _createServer().then((_) {
-                    _addPlayer().then((_) {
-                      Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const CreateQRPage())
-                      );
+            const SizedBox(height: 16),
+            ElevatedButton(
+                onPressed: () {
+                  if (_textEditingController.text.isNotEmpty) {
+                    _createJoinCode().then((_) {
+                      _createServer().then((_) {
+                        _addPlayer().then((_) {
+                          Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const CreateQRPage())
+                          );
+                        });
+                      });
                     });
-                  });
-                });
-              }
-            }, 
-            child: const Text('Whatacaption!')),
-        ],
-      ),
+                  }
+                },
+                child: const Text('Whatacaption!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+            ),
+          ],
+        ),
+      )
     );
   }
 }

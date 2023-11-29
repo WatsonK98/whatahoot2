@@ -5,6 +5,7 @@ import 'package:whatahoot2/pages/homepage.dart';
 
 ///Created by Samuel R. Sanchez
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options:  DefaultFirebaseOptions.currentPlatform,
   );

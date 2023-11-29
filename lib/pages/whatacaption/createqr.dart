@@ -16,10 +16,10 @@ class _CreateQRPageState extends State<CreateQRPage> {
   late int _playerCount = 1;
 
   Future<void> _startGame() async {
-    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$_joinCode');
-    gameStartRef.set({
-      'gameStart': true
-    });
+    String joinCode = await _joinCode;
+
+    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$joinCode/gameStart');
+    await gameStartRef.set(true);
   }
 
   @override
@@ -73,7 +73,6 @@ class _CreateQRPageState extends State<CreateQRPage> {
                       ElevatedButton(
                         onPressed: () {
                           _startGame().then((_) {
-
                           });
                         },
                         child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
