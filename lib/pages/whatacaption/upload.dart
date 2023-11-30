@@ -15,7 +15,6 @@ class UploadPage extends StatefulWidget {
 
 class _UploadPageState extends State<UploadPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  final Completer<void> _uploadCompleter = Completer<void>();
   static File? _imageFile;
 
   Future<void> _getImage() async {
@@ -38,10 +37,7 @@ class _UploadPageState extends State<UploadPage> {
     String? serverId = prefs.getString('joinCode');
 
     final imageRef = FirebaseStorage.instance.ref().child('$serverId');
-    UploadTask uploadTask = imageRef.putFile(_imageFile!);
-    await uploadTask.whenComplete(() {
-      _uploadCompleter.complete();
-    });
+    await imageRef.putFile(_imageFile!);
   }
 
   @override
@@ -73,7 +69,9 @@ class _UploadPageState extends State<UploadPage> {
               children: <Widget>[
                 ElevatedButton.icon(
                   onPressed: () {
-                    _uploadImage();
+                    _getImage().then((value) {
+                      _uploadImage();
+                    });
                   },
                   icon: const Icon(Icons.cloud_upload),
                   label: const Text('Upload')
@@ -81,9 +79,9 @@ class _UploadPageState extends State<UploadPage> {
                 const SizedBox(width: 16),
                 ElevatedButton(
                     onPressed: () {
-                      _uploadCompleter.future.then((_) {
-                        
-                      });
+                      if (_imageFile != null) {
+                        //Move to caption page
+                      }
                     }, 
                     child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                 ),
