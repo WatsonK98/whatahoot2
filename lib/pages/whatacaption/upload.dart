@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'caption.dart';
 
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
@@ -81,6 +82,9 @@ class _UploadPageState extends State<UploadPage> {
                     onPressed: () {
                       if (_imageFile != null) {
                         //Move to caption page
+                        Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => const CaptionPage())
+                        );
                       }
                     }, 
                     child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
