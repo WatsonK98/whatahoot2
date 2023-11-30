@@ -3,6 +3,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'whatacaption/upload.dart';
 
 class JoinGamePage extends StatefulWidget {
   const JoinGamePage({super.key});
@@ -20,6 +21,8 @@ class _JoinGamePageState extends State<JoinGamePage> {
   QRViewController? controller;
 
   Future<void> _signIn() async {
+    SharedPreferences prefs = await _prefs;
+    await prefs.setString('joinCode', _joinCodeController.text);
     await FirebaseAuth.instance.signInAnonymously();
     final String? uid = FirebaseAuth.instance.currentUser?.uid;
 
@@ -28,6 +31,17 @@ class _JoinGamePageState extends State<JoinGamePage> {
     await playerRef.set({
       'nickname': _nickNameController.text,
       'score': 0
+    });
+  }
+
+  Future<void> _awaitGameStart() async {
+    SharedPreferences prefs = await _prefs;
+    String? joinCode = prefs.getString('joinCode');
+    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$joinCode/gameStart');
+    gameStartRef.onChildChanged.listen((event) {
+      if (event.snapshot.value == true) {
+        return;
+      }
     });
   }
 
@@ -96,7 +110,9 @@ class _JoinGamePageState extends State<JoinGamePage> {
                   onPressed: () {
                     if (_joinCodeController.text.isNotEmpty && _nickNameController.text.isNotEmpty) {
                       _signIn().then((_) {
-
+                        _awaitGameStart().then((_) {
+                          //go to upload page
+                        });
                       });
                     }
                   },
