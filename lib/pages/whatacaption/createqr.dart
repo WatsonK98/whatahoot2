@@ -42,7 +42,7 @@ class _CreateQRPageState extends State<CreateQRPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('QR'),
+        title: const Text('Join Me!'),
       ),
       body: Center(
         child: FutureBuilder(

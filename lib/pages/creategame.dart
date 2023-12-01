@@ -77,7 +77,7 @@ class _CreateGamePageState extends State<CreateGamePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Create Game'),
+        title: const Text('Create!'),
       ),
       body: Center(
         child: Column(

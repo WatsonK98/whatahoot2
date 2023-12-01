@@ -11,7 +11,10 @@ class _captionPageState extends State<CaptionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text("Caption!"),
+      ),
     );
   }
 }

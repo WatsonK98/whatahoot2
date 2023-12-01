@@ -67,7 +67,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Join'),
+        title: const Text('Join!'),
       ),
       body: SingleChildScrollView(
         child: Center(

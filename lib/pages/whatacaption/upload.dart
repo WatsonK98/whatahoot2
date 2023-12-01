@@ -46,7 +46,7 @@ class _UploadPageState extends State<UploadPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Create Game'),
+        title: const Text('Upload!'),
       ),
       body: Center(
         child: Column(

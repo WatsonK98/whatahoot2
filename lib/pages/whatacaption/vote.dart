@@ -14,7 +14,7 @@ class _votePageState extends State<VotePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("WhataCaption!"),
+        title: const Text("Vote!"),
       ),
     );
   }
