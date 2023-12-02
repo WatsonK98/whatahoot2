@@ -4,10 +4,10 @@ class VotePage extends StatefulWidget {
   const VotePage({super.key});
 
   @override
-  State<VotePage> createState() => _votePageState();
+  State<VotePage> createState() => _VotePageState();
 }
 
-class _votePageState extends State<VotePage> {
+class _VotePageState extends State<VotePage> {
 
   @override
   Widget build(BuildContext context) {
