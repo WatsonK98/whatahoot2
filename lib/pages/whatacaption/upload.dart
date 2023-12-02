@@ -75,7 +75,7 @@ class _UploadPageState extends State<UploadPage> {
                     });
                   },
                   icon: const Icon(Icons.cloud_upload),
-                  label: const Text('Upload')
+                  label: const Text('Upload', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(

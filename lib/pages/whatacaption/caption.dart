@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import 'vote.dart';
+
 class CaptionPage extends StatefulWidget {
   const CaptionPage({super.key});
 
@@ -14,10 +16,12 @@ class _CaptionPageState extends State<CaptionPage> {
   late Future<File> _imageLink;
   static File? _imageFile;
 
+  ///Here we will get the image from storage and download it
   Future<void> _getImage() async {
 
   }
 
+  ///Here we will send the caption to the server
   Future<void> _sendCaption() async {
 
   }
@@ -79,10 +83,12 @@ class _CaptionPageState extends State<CaptionPage> {
                   ElevatedButton(
                     onPressed: (){
                       if (_textEditingController.text.isNotEmpty) {
-                        //send the caption, wait, then move on
+                        _sendCaption().then((_) {
+
+                        });
                       }
                     },
-                    child: const Text('Continue!'),
+                    child: const Text('Continue!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
