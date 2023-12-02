@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'vote.dart';
 
+///Created By Nathanael Perez
+
 class CaptionPage extends StatefulWidget {
   const CaptionPage({super.key});
 
@@ -84,7 +86,8 @@ class _CaptionPageState extends State<CaptionPage> {
                     onPressed: (){
                       if (_textEditingController.text.isNotEmpty) {
                         _sendCaption().then((_) {
-
+                          Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const VotePage()));
                         });
                       }
                     },

@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:whatahoot2/pages/whatacaption/createqr.dart';
 
+///Created by Francisco Vazquez
+
 class CreateGamePage extends StatefulWidget {
   const CreateGamePage({super.key});
 
@@ -17,10 +19,10 @@ class _CreateGamePageState extends State<CreateGamePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final TextEditingController _textEditingController = TextEditingController();
   late String _joinCode = '';
-
-  //Random alphanumeric generator in lambda
   final Random _rnd = Random();
   final _chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
+
+  ///Random String generator for a specified length
   String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
       length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 
@@ -47,7 +49,7 @@ class _CreateGamePageState extends State<CreateGamePage> {
     //Initialize the database with the join code as the server ID
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(_joinCode);
     await serverRef.set({
-      'gameStart': false,
+      'gameStage': 0,
       'players': {}
     });
   }
@@ -59,6 +61,7 @@ class _CreateGamePageState extends State<CreateGamePage> {
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$_joinCode/players/$uid');
     await playerRef.set({
       'nickname': nickname,
+      'host': true,
       'score': 0
     });
 
@@ -96,17 +99,14 @@ class _CreateGamePageState extends State<CreateGamePage> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_textEditingController.text.isNotEmpty) {
-                    _createJoinCode().then((_) {
-                      _createServer().then((_) {
-                        _addPlayer().then((_) {
-                          Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const CreateQRPage())
-                          );
-                        });
-                      });
-                    });
+                    await _createJoinCode();
+                    await _createServer();
+                    await _addPlayer();
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const CreateQRPage()));
                   }
                 },
                 child: const Text('Whatacaption!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))

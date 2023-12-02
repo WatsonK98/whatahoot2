@@ -30,6 +30,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$joinCode/players/$uid');
     await playerRef.set({
       'nickname': _nickNameController.text,
+      'host': false,
       'score': 0
     });
   }

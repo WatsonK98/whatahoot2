@@ -3,6 +3,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+///Created by Alexandder Watson
+
 class CreateQRPage extends StatefulWidget {
   const CreateQRPage({super.key});
 
@@ -18,8 +20,13 @@ class _CreateQRPageState extends State<CreateQRPage> {
   Future<void> _startGame() async {
     String joinCode = await _joinCode;
 
-    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$joinCode/gameStart');
-    await gameStartRef.set(true);
+    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$joinCode/gameStage');
+    await gameStartRef.set(1);
+  }
+
+  Future<void> _savePlayerCount() async {
+    SharedPreferences prefs = await _prefs;
+    await prefs.setInt('playerCount', _playerCount);
   }
 
   @override
@@ -72,6 +79,7 @@ class _CreateQRPageState extends State<CreateQRPage> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
+                          _savePlayerCount();
                           _startGame().then((_) {
                           });
                         },

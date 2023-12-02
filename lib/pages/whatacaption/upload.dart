@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'caption.dart';
 
+///Created by David Vazquez
+
 class UploadPage extends StatefulWidget {
   const UploadPage({super.key});
 
@@ -19,7 +21,6 @@ class _UploadPageState extends State<UploadPage> {
   static File? _imageFile;
 
   Future<void> _getImage() async {
-
     ImagePicker picker = ImagePicker();
     XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image == null) {
@@ -39,6 +40,16 @@ class _UploadPageState extends State<UploadPage> {
 
     final imageRef = FirebaseStorage.instance.ref().child('$serverId');
     await imageRef.putFile(_imageFile!);
+  }
+
+  ///Check if the player is the game host
+  Future<void> _isHost() async {
+
+  }
+
+  ///If the host then update the game state
+  Future<void> _updateGameStage() async {
+
   }
 
   @override
