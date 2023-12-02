@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class CaptionPage extends StatefulWidget {
@@ -9,6 +11,22 @@ class CaptionPage extends StatefulWidget {
 
 class _CaptionPageState extends State<CaptionPage> {
   final TextEditingController _textEditingController = TextEditingController();
+  late Future<File> _imageLink;
+  static File? _imageFile;
+
+  Future<void> _getImage() async {
+
+  }
+
+  Future<void> _sendCaption() async {
+
+  }
+
+  @override
+  void initState () {
+    super.initState();
+    _getImage();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +40,28 @@ class _CaptionPageState extends State<CaptionPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              FutureBuilder<File> (
+                future: _imageLink,
+                builder: (BuildContext context, AsyncSnapshot<File> snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                      return const CircularProgressIndicator();
+                    case ConnectionState.active:
+                    case ConnectionState.done:
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return Image.memory(
+                          _imageFile!.readAsBytesSync(),
+                          width: 300,
+                          height: 300,
+                          fit: BoxFit.scaleDown,
+                        );
+                      }
+                  }
+                },
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -37,7 +77,11 @@ class _CaptionPageState extends State<CaptionPage> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
-                    onPressed: (){},
+                    onPressed: (){
+                      if (_textEditingController.text.isNotEmpty) {
+                        //send the caption, wait, then move on
+                      }
+                    },
                     child: const Text('Continue!'),
                   ),
                 ],
