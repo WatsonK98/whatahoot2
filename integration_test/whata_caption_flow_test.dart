@@ -2,12 +2,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:whatahoot/firebase_options.dart';
-import 'package:whatahoot/main.dart';
-import 'package:whatahoot/pages/whatacaption/whata_caption_caption.dart';
-import 'package:whatahoot/pages/whatacaption/whata_caption_upload.dart';
-import 'package:whatahoot/pages/whatacaption/whata_caption_vote.dart';
-import 'package:whatahoot/pages/join_game.dart';
+import 'package:whatahoot2/firebase_options.dart';
+import 'package:whatahoot2/main.dart';
+import 'package:whatahoot2/pages/joingame.dart';
+import 'package:whatahoot2/pages/whatacaption/caption.dart';
+import 'package:whatahoot2/pages/whatacaption/upload.dart';
+import 'package:whatahoot2/pages/whatacaption/vote.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +42,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
         const MaterialApp(
-          home: WhataCaptionUploadPage(),
+          home: UploadPage(),
         )
     );
 
@@ -63,7 +63,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
         const MaterialApp(
-          home: WhataCaptionCaptionPage(),
+          home: CaptionPage(),
         )
     );
 
@@ -88,7 +88,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
         const MaterialApp(
-          home: WhataCaptionVotePage(),
+          home: VotePage(),
         )
     );
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:whatahoot/pages/create_game.dart';
+import 'package:whatahoot2/pages/creategame.dart';
 
 void main() {
   testWidgets('Verify Create Game page', (WidgetTester tester) async {

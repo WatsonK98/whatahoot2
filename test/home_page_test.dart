@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:whatahoot/main.dart';
+import 'package:whatahoot2/main.dart';
 
 void main() {
   testWidgets('Verfify main page', (WidgetTester tester) async {

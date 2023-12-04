@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:whatahoot/pages/join_game.dart';
+import 'package:whatahoot2/pages/joingame.dart';
 
 void main() {
   testWidgets('Verify Join Game page', (WidgetTester tester) async {

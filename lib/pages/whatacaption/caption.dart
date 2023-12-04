@@ -209,6 +209,7 @@ class _CaptionPageState extends State<CaptionPage> {
                   await _isHost();
 
                   if (ready || gameReady) {
+                    await _updatePlayerNotReady();
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (context) => const VotePage()));
                   }

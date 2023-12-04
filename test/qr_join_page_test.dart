@@ -2,9 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:whatahoot/firebase_options.dart';
-import 'package:whatahoot/main.dart';
-import 'package:whatahoot/pages/qr_join.dart';
+import 'package:whatahoot2/firebase_options.dart';
+import 'package:whatahoot2/main.dart';
+import 'package:whatahoot2/pages/joingame.dart';
 
 void main() {
   //Remove this test
@@ -22,7 +22,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
         const MaterialApp(
-          home: QRJoinPage(),
+          home: JoinGamePage(),
         )
     );
 
