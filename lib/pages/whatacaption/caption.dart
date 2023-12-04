@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,8 +21,7 @@ class CaptionPage extends StatefulWidget {
 class _CaptionPageState extends State<CaptionPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final TextEditingController _commentController = TextEditingController();
-  late Future<File> _imageLink;
-  static File? _imageFile;
+  late String? _imageUrl;
   late bool gameReady = false;
   late bool ready = false;
 
@@ -37,11 +37,9 @@ class _CaptionPageState extends State<CaptionPage> {
 
     if (result.items.isNotEmpty) {
       final Reference firstImage = result.items.first;
-      final String downloadUrl = await firstImage.getDownloadURL();
+      _imageUrl = await firstImage.getDownloadURL();
 
-      setState(() {
-        _imageFile = firstImage.getDownloadURL() as File?;
-      });
+      setState(() {});
 
     } else {
       Navigator.push(context,
@@ -167,6 +165,12 @@ class _CaptionPageState extends State<CaptionPage> {
   }
 
   @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -174,69 +178,44 @@ class _CaptionPageState extends State<CaptionPage> {
         title: const Text("Caption!"),
       ),
       body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              FutureBuilder<File> (
-                future: _imageLink,
-                builder: (BuildContext context, AsyncSnapshot<File> snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                      return const CircularProgressIndicator();
-                    case ConnectionState.active:
-                    case ConnectionState.done:
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else {
-                        return Image.memory(
-                          _imageFile!.readAsBytesSync(),
-                          width: 300,
-                          height: 300,
-                          fit: BoxFit.scaleDown,
-                        );
-                      }
-                  }
-                },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const SizedBox(height: 16),
+            Center(
+              child: _imageUrl != null
+                  ? Image.network(
+                _imageUrl!,
+                width: 300,
+                height: 300,
+                fit: BoxFit.scaleDown,
+              )
+                  : const CircularProgressIndicator(),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: 300,
+              child: TextField(
+                controller: _commentController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter Caption',
+                ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(
-                    width: 200,
-                    child: TextField(
-                      controller: _commentController,
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'Enter a caption!'
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () async {
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
 
-                      if (_commentController.text.isNotEmpty) {
-                        await _sendCaption();
-                        await _updatePlayerReady();
-                        await _isHost();
-
-                        if (gameReady || ready) {
-                          await _updatePlayerNotReady();
-                          Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const VotePage()));
-                        }
-                      }
-                    },
-                    child: const Text('Continue!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ],
-          ),
+              },
+              child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+class _imageFile {
 }
