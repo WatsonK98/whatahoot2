@@ -51,9 +51,9 @@ class _CaptionPageState extends State<CaptionPage> {
     String? serverId = prefs.getString('joinCode');
     String? uid = prefs.getString('userId');
 
-    DatabaseReference commentRef = FirebaseDatabase.instance.ref().child('$serverId/comments/$uid');
+    DatabaseReference commentRef = FirebaseDatabase.instance.ref().child('$serverId/captions/$uid');
     commentRef.set({
-      'comment': _commentController.text,
+      'caption': _commentController.text,
       'votes': 0
     });
   }
