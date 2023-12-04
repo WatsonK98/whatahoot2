@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:whatahoot2/pages/whatacaption/caption.dart';
-import 'package:whatahoot2/pages/whatacaption/win.dart';
 
 ///Created by Gustavo Rubio
 
@@ -18,7 +16,6 @@ class VotePage extends StatefulWidget {
 class _VotePageState extends State<VotePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final TextEditingController _textEditingController = TextEditingController();
-  List<String> captions = [];
   late Map<String, dynamic> captionsData;
   late String? _imageUrl;
   late bool gameReady = false;
@@ -40,29 +37,7 @@ class _VotePageState extends State<VotePage> {
 
       setState(() {});
 
-    } else {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const WinPage()));
-    }
-  }
-
-  ///Get the comments from the database
-  Future<void> _getCaptions() async {
-    SharedPreferences prefs = await _prefs;
-
-    String? serverId = prefs.getString('joinCode');
-
-    DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
-    final snapshot = await captionsRef.get();
-
-    captionsData = snapshot.value as Map<String, dynamic>;
-
-    captions.clear();
-
-    captionsData.forEach((uid, captionData) {
-      captions.add(captionData['caption']);
-    });
-
+    } else {}
   }
 
   ///Update the players ready state
@@ -237,7 +212,6 @@ class _VotePageState extends State<VotePage> {
   void initState () {
     super.initState();
     _getImage();
-    _getCaptions();
   }
 
   @override
@@ -263,33 +237,7 @@ class _VotePageState extends State<VotePage> {
                     : const CircularProgressIndicator()
             ),
             const SizedBox(height: 16),
-            ListView.builder(
-                shrinkWrap: true,
-                itemCount: captions.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(captions[index]),
-                    trailing: ElevatedButton(
-                      onPressed: () async {
-                        await _sendVote(captions[index]);
-                        await _updatePlayerReady();
-                        await _isHost();
 
-                        if (ready || gameReady) {
-                          await _tallyVotes();
-                          await _removeCaptions();
-                          await _removeImage();
-                          await _updatePlayerNotReady();
-
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const CaptionPage()));
-                        }
-                      },
-                      child: const Text('Vote'),
-                    ),
-                  );
-                }
-            ),
           ],
         ),
       ),
