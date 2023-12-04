@@ -205,8 +205,10 @@ class _CaptionPageState extends State<CaptionPage> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-
+              onPressed: () async {
+                await _sendCaption();
+                _updatePlayerReady();
+                await _isHost();
               },
               child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
