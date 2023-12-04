@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:whatahoot2/pages/whatacaption/upload.dart';
-
+import 'upload.dart';
 ///Created by Alexander Watson
 
-class CreateCaptionQRPage extends StatefulWidget {
-  const CreateCaptionQRPage({super.key});
+class CreateVibeQRPage extends StatefulWidget {
+  const CreateVibeQRPage({super.key});
 
   @override
-  State<CreateCaptionQRPage> createState() => _CreateCaptionQRPageState();
+  State<CreateVibeQRPage> createState() => _CreateVibeQRPageState();
 }
 
-class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
+class _CreateVibeQRPageState extends State<CreateVibeQRPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   late Future<String> _joinCode;
   late int _playerCount = 1;

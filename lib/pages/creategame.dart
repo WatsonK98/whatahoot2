@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:whatahoot2/pages/whatacaption/createqr.dart';
+import 'package:whatahoot2/pages/whatavibe/createqr.dart';
 
 ///Created by Francisco Vazquez
 
@@ -117,10 +118,24 @@ class _CreateGamePageState extends State<CreateGamePage> {
                     await _addPlayer();
 
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const CreateQRPage()));
+                      MaterialPageRoute(builder: (context) => const CreateCaptionQRPage()));
                   }
                 },
                 child: const Text('Whatacaption!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+                onPressed: () async {
+                  if (_nickNameController.text.isNotEmpty) {
+                    await _createJoinCode();
+                    await _createServer();
+                    await _addPlayer();
+
+                    Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const CreateVibeQRPage()));
+                  }
+                },
+                child: const Text('Whatavibe!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
             ),
           ],
         ),
