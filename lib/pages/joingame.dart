@@ -17,6 +17,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
   final TextEditingController _joinCodeController = TextEditingController();
   final TextEditingController _nickNameController = TextEditingController();
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
+  late bool gameStart = false;
   Barcode? result;
   QRViewController? controller;
 
@@ -38,21 +39,23 @@ class _JoinGamePageState extends State<JoinGamePage> {
   Future<void> _awaitGameStart() async {
     SharedPreferences prefs = await _prefs;
     String? joinCode = prefs.getString('joinCode');
-    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$joinCode/gameStart');
+    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$joinCode/gameStage');
     gameStartRef.onChildChanged.listen((event) {
-      if (event.snapshot.value == true) {
-        return;
+      if (event.snapshot.value == 1) {
+        setState(() {
+          gameStart = true;
+        });
       }
     });
   }
 
-  void _onQRViewCreated(QRViewController controller) {
-    controller = controller;
-    controller.scannedDataStream.listen((scanData) {
+  void _onQRViewCreated(QRViewController qrViewController) {
+    controller = qrViewController;
+    controller?.scannedDataStream.listen((scanData) {
       setState(() {
         _joinCodeController.text = scanData.code!;
       });
-      controller.stopCamera();
+      controller?.stopCamera();
     });
   }
 
@@ -108,13 +111,15 @@ class _JoinGamePageState extends State<JoinGamePage> {
                 ),
               ),
               ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_joinCodeController.text.isNotEmpty && _nickNameController.text.isNotEmpty) {
-                      _signIn().then((_) {
-                        _awaitGameStart().then((_) {
-                          //go to upload page
-                        });
-                      });
+                      await _signIn();
+                      await _awaitGameStart();
+
+                      if (gameStart) {
+                        Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => const UploadPage()));
+                      }
                     }
                   },
                   child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))

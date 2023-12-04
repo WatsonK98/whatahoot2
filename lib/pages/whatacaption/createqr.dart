@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:whatahoot2/pages/whatacaption/upload.dart';
 
-///Created by Alexandder Watson
+///Created by Alexander Watson
 
 class CreateQRPage extends StatefulWidget {
   const CreateQRPage({super.key});
@@ -16,13 +17,6 @@ class _CreateQRPageState extends State<CreateQRPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   late Future<String> _joinCode;
   late int _playerCount = 1;
-
-  Future<void> _startGame() async {
-    String joinCode = await _joinCode;
-
-    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$joinCode/gameStage');
-    await gameStartRef.set(1);
-  }
 
   Future<void> _savePlayerCount() async {
     SharedPreferences prefs = await _prefs;
@@ -78,10 +72,10 @@ class _CreateQRPageState extends State<CreateQRPage> {
                       Text('$_playerCount', style: const TextStyle(fontSize: 55)),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () {
-                          _savePlayerCount();
-                          _startGame().then((_) {
-                          });
+                        onPressed: () async {
+                          await _savePlayerCount();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => const UploadPage()));
                         },
                         child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                       ),

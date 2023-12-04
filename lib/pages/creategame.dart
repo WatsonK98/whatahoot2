@@ -17,7 +17,7 @@ class CreateGamePage extends StatefulWidget {
 
 class _CreateGamePageState extends State<CreateGamePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  final TextEditingController _textEditingController = TextEditingController();
+  final TextEditingController _nickNameController = TextEditingController();
   late String _joinCode = '';
   final Random _rnd = Random();
   final _chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
@@ -36,12 +36,14 @@ class _CreateGamePageState extends State<CreateGamePage> {
       _joinCode = getRandomString(5);
     });
 
-    await prefs.setString('nickname', _textEditingController.text);
     await prefs.setString('joinCode', _joinCode);
   }
 
   ///Create the server for the game state
+  ///First signing in the player
+  ///Then initializing the database space
   Future<void> _createServer() async {
+    SharedPreferences prefs = await _prefs;
 
     //Sign the player in to write to the database
     await FirebaseAuth.instance.signInAnonymously();
@@ -50,28 +52,36 @@ class _CreateGamePageState extends State<CreateGamePage> {
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(_joinCode);
     await serverRef.set({
       'gameStage': 0,
-      'players': {}
+      'players': {},
+      'comments': {}
     });
   }
 
+  ///Add the player
+  ///First grab the controller text
+  ///Second grab the uid
+  ///Then set with host as true
   Future<void> _addPlayer() async {
-    final String nickname = _textEditingController.text;
+    SharedPreferences prefs = await _prefs;
+    final String nickname = _nickNameController.text;
     final String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+    await prefs.setString('userId', FirebaseAuth.instance.currentUser!.uid);
 
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$_joinCode/players/$uid');
     await playerRef.set({
       'nickname': nickname,
       'host': true,
+      'ready': false,
       'score': 0
     });
-
   }
 
   ///Dispose clears the controller and any other listeners except for
   ///shared preferences
   @override
   void dispose() {
-    _textEditingController.dispose();
+    _nickNameController.dispose();
     super.dispose();
   }
 
@@ -89,7 +99,7 @@ class _CreateGamePageState extends State<CreateGamePage> {
             SizedBox(
               width: 200,
               child: TextField(
-                controller: _textEditingController,
+                controller: _nickNameController,
                 decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'Enter a nickname'
@@ -100,7 +110,7 @@ class _CreateGamePageState extends State<CreateGamePage> {
             const SizedBox(height: 16),
             ElevatedButton(
                 onPressed: () async {
-                  if (_textEditingController.text.isNotEmpty) {
+                  if (_nickNameController.text.isNotEmpty) {
                     await _createJoinCode();
                     await _createServer();
                     await _addPlayer();

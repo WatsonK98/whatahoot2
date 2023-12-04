@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'caption.dart';
 
@@ -18,8 +19,11 @@ class UploadPage extends StatefulWidget {
 
 class _UploadPageState extends State<UploadPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  late bool gameReady = false;
+  late bool ready = false;
   static File? _imageFile;
 
+  ///Get image from device
   Future<void> _getImage() async {
     ImagePicker picker = ImagePicker();
     XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -33,6 +37,7 @@ class _UploadPageState extends State<UploadPage> {
     });
   }
 
+  ///Upload the Image to the server
   Future<void> _uploadImage() async {
     SharedPreferences prefs = await _prefs;
 
@@ -42,14 +47,101 @@ class _UploadPageState extends State<UploadPage> {
     await imageRef.putFile(_imageFile!);
   }
 
+  ///Update the players ready state
+  Future<void> _updatePlayerReady() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    String? uid = prefs.getString('userId');
+
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/$uid');
+    playerRef.update({
+      'ready': true
+    });
+  }
+
+  ///Make the player not ready again
+  Future<void> _updatePlayerNotReady() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    String? uid = prefs.getString('userId');
+
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/$uid');
+    playerRef.update({
+      'ready': false
+    });
+  }
+
   ///Check if the player is the game host
   Future<void> _isHost() async {
+    SharedPreferences prefs = await _prefs;
 
+    String? serverId = prefs.getString('joinCode');
+    String? userId = prefs.getString('userId');
+
+    DatabaseReference hostRef = FirebaseDatabase.instance.ref().child('$serverId/players/$userId/host');
+    final snapshot = await hostRef.get();
+
+    if (snapshot.value == true) {
+      await _updateGameStage();
+      await _awaitPlayersReady();
+    } else {
+      await _listenGameStage();
+    }
   }
 
   ///If the host then update the game state
   Future<void> _updateGameStage() async {
+    SharedPreferences prefs = await _prefs;
 
+    String? serverId = prefs.getString('joinCode');
+
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
+    await serverRef.update({
+      'gameStage': 1
+    });
+  }
+
+  ///Await for players ready
+  Future<void> _awaitPlayersReady() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    int playerCount = prefs.getInt('playerCount') ?? 0;
+    int readyCount = 1;
+
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
+    serverRef.onChildChanged.listen((event) {
+      readyCount++;
+      if (readyCount == playerCount) {
+        setState(() {
+          ready = true;
+        });
+      }
+    });
+  }
+
+  ///If not the host then await for stage change
+  Future<void> _listenGameStage() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/gameStage');
+
+    DataSnapshot snapshot = await serverRef.get();
+    if (snapshot.value == 1) {
+      setState(() {
+        gameReady = true;
+      });
+    } else {
+      serverRef.onChildChanged.listen((event) async {
+        setState(() {
+          gameReady = true;
+        });
+      });
+    }
   }
 
   @override
@@ -80,25 +172,29 @@ class _UploadPageState extends State<UploadPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 ElevatedButton.icon(
-                  onPressed: () {
-                    _getImage().then((value) {
-                      _uploadImage();
-                    });
+                  onPressed: () async {
+                    await _getImage();
+                    await _uploadImage();
+                    await _updatePlayerReady();
                   },
                   icon: const Icon(Icons.cloud_upload),
                   label: const Text('Upload', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                    onPressed: () {
-                      if (_imageFile != null) {
-                        //Move to caption page
+                  onPressed: () async {
+
+                    if (_imageFile != null) {
+                      await _isHost();
+
+                      if (ready || gameReady) {
+                        await _updatePlayerNotReady();
                         Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const CaptionPage())
-                        );
+                            MaterialPageRoute(builder: (context) => const CaptionPage()));
                       }
-                    }, 
-                    child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                    }
+                  },
+                  child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                 ),
               ],
             )
