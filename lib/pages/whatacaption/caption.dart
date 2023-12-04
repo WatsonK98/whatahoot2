@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:whatahoot2/pages/whatacaption/vote.dart';
+import 'package:whatahoot2/pages/whatacaption/win.dart';
 
-import 'vote.dart';
 
 ///Created By Nathanael Perez
 
@@ -32,6 +33,20 @@ class _CaptionPageState extends State<CaptionPage> {
 
     final storageRef = FirebaseStorage.instance.ref();
     final imageRef = storageRef.child('$serverId');
+    final ListResult result = await imageRef.listAll();
+
+    if (result.items.isNotEmpty) {
+      final Reference firstImage = result.items.first;
+      final String downloadUrl = await firstImage.getDownloadURL();
+
+      setState(() {
+        _imageFile = firstImage.getDownloadURL() as File?;
+      });
+
+    } else {
+      Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const WinPage()));
+    }
   }
 
   ///Here we will send the caption to the server
