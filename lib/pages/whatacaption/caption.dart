@@ -206,9 +206,16 @@ class _CaptionPageState extends State<CaptionPage> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
-                await _sendCaption();
-                _updatePlayerReady();
-                await _isHost();
+                if (_commentController.text.isNotEmpty) {
+                  await _sendCaption();
+                  await _updatePlayerReady();
+                  await _isHost();
+
+                  if (ready || gameReady) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const VotePage()));
+                  }
+                }
               },
               child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
