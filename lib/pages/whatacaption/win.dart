@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
+import '../homepage.dart';
 
 class WinPage extends StatefulWidget {
   const WinPage({super.key});
@@ -14,6 +15,7 @@ class _WinPageState extends State<WinPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   late String winner = '';
 
+  ///Get the winner by comparing each players scores
   Future<void> _getWinner() async {
     SharedPreferences prefs = await _prefs;
 
@@ -25,7 +27,7 @@ class _WinPageState extends State<WinPage> {
 
     int highscore = 0;
 
-
+    //compare players' scores
     playersData.forEach((uid, playerData) {
       int score = playerData['score'];
       if (score > highscore) {
@@ -53,7 +55,10 @@ class _WinPageState extends State<WinPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(winner, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold))
+            Text(winner, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
+            ElevatedButton(onPressed: () {
+              Navigator.popUntil(context, ModalRoute.withName('/homepage'));
+            }, child: const Text('Back to Home'))
           ],
         ),
       ),

@@ -18,6 +18,7 @@ class _CreateQRPageState extends State<CreateQRPage> {
   late Future<String> _joinCode;
   late int _playerCount = 1;
 
+  ///Save a count of the players for later
   Future<void> _savePlayerCount() async {
     SharedPreferences prefs = await _prefs;
     await prefs.setInt('playerCount', _playerCount);

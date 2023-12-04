@@ -68,6 +68,7 @@ class _CreateGamePageState extends State<CreateGamePage> {
 
     await prefs.setString('userId', FirebaseAuth.instance.currentUser!.uid);
 
+    //add the host params
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$_joinCode/players/$uid');
     await playerRef.set({
       'nickname': nickname,

@@ -21,13 +21,17 @@ class _JoinGamePageState extends State<JoinGamePage> {
   Barcode? result;
   QRViewController? controller;
 
+  ///Sign the user in
   Future<void> _signIn() async {
     SharedPreferences prefs = await _prefs;
     await prefs.setString('joinCode', _joinCodeController.text);
+
+    //sign in anonymously so no email password combos
     await FirebaseAuth.instance.signInAnonymously();
     final String? uid = FirebaseAuth.instance.currentUser?.uid;
-
     String joinCode = _joinCodeController.text;
+
+    //Initialize their spot in the database
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$joinCode/players/$uid');
     await playerRef.set({
       'nickname': _nickNameController.text,
@@ -36,6 +40,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
     });
   }
 
+  ///Wait for the game to start if joined game
   Future<void> _awaitGameStart() async {
     SharedPreferences prefs = await _prefs;
     String? joinCode = prefs.getString('joinCode');
@@ -49,6 +54,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
     });
   }
 
+  ///Once the qr code is captured it'll stop the camera
   void _onQRViewCreated(QRViewController qrViewController) {
     controller = qrViewController;
     controller?.scannedDataStream.listen((scanData) {
