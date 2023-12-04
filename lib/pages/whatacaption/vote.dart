@@ -19,6 +19,7 @@ class _VotePageState extends State<VotePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final TextEditingController _textEditingController = TextEditingController();
   List<String> captions = [];
+  late Map<String, dynamic> captionsData;
   late String? _imageUrl;
   late bool gameReady = false;
   late bool ready = false;
@@ -53,7 +54,15 @@ class _VotePageState extends State<VotePage> {
 
     DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
     final snapshot = await captionsRef.get();
-    print(snapshot.value);
+
+    captionsData = snapshot.value as Map<String, dynamic>;
+
+    captions.clear();
+
+    captionsData.forEach((uid, captionData) {
+      captions.add(captionData['caption']);
+    });
+
   }
 
   ///Update the players ready state
@@ -185,13 +194,43 @@ class _VotePageState extends State<VotePage> {
   }
 
   ///Here we will send the caption to the server
-  Future<void> _sendVote() async {
+  Future<void> _sendVote(String caption) async {
+    SharedPreferences prefs = await _prefs;
 
+    String? serverId = prefs.getString('joinCode');
+
+    DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
+    final snapshot = await captionsRef.get();
+
+    captionsData = snapshot.value as Map<String, dynamic>;
+
+    captionsData.forEach((uid, captionData) {
+      if (caption == captionData['caption']) {
+        DatabaseReference voteRef = FirebaseDatabase.instance.ref().child('$serverId/captions/$uid/votes');
+        voteRef.set(ServerValue.increment(1));
+      }
+    });
   }
 
   ///Tally the votes and add it to the players score
   Future<void> _tallyVotes() async {
+    SharedPreferences prefs = await _prefs;
 
+    String? serverId = prefs.getString('joinCode');
+
+    DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
+    DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$serverId/players');
+    final snapshot = await captionsRef.get();
+
+    captionsData = snapshot.value as Map<String, dynamic>;
+
+    captionsData.forEach((uid, captionData) {
+      int votes = captionData['votes'];
+
+      if (playersRef.child(uid).key == uid) {
+        playersRef.child(uid).set(ServerValue.increment(votes));
+      }
+    });
   }
 
   @override
@@ -232,7 +271,7 @@ class _VotePageState extends State<VotePage> {
                     title: Text(captions[index]),
                     trailing: ElevatedButton(
                       onPressed: () async {
-                        await _sendVote();
+                        await _sendVote(captions[index]);
                         await _updatePlayerReady();
                         await _isHost();
 
