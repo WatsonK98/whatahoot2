@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:whatahoot2/pages/whatacaption/vote.dart';
-import 'package:whatahoot2/pages/whatacaption/win.dart';
 
 
 ///Created By Nathanael Perez
@@ -118,15 +117,21 @@ class _CaptionPageState extends State<CaptionPage> {
     int playerCount = prefs.getInt('playerCount') ?? 0;
     int readyCount = 1;
 
-    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
-    serverRef.onChildChanged.listen((event) {
-      readyCount++;
-      if (readyCount == playerCount) {
-        setState(() {
-          ready = true;
-        });
-      }
-    });
+    if (readyCount == playerCount) {
+      setState(() {
+        ready = true;
+      });
+    } else {
+      DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
+      serverRef.onChildChanged.listen((event) {
+        readyCount++;
+        if (readyCount == playerCount) {
+          setState(() {
+            ready = true;
+          });
+        }
+      });
+    }
   }
 
   ///If not the host then await for stage change
@@ -177,7 +182,7 @@ class _CaptionPageState extends State<CaptionPage> {
             const SizedBox(height: 16),
             Center(
               child: _imageUrl != null
-                  ? Image.network(
+                ? Image.network(
                 _imageUrl!,
                 width: 300,
                 height: 300,
@@ -199,16 +204,18 @@ class _CaptionPageState extends State<CaptionPage> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
+
                 if (_commentController.text.isNotEmpty) {
+                  print('I am here');
                   await _sendCaption();
                   await _updatePlayerReady();
-                  await _isHost();
-
-                  if (ready || gameReady) {
-                    await _updatePlayerNotReady();
-                    //Navigator.of(context).push(
-                      //MaterialPageRoute(builder: (context) => const VotePage()));
-                  }
+                  _isHost().then((_) async {
+                    if (ready || gameReady) {
+                      await _updatePlayerNotReady();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const VotePage()));
+                    }
+                  });
                 }
               },
               child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

@@ -163,15 +163,14 @@ class _UploadPageState extends State<UploadPage> {
           children: <Widget>[
             const SizedBox(height: 16),
             Center(
-              child:
-              _imageFile != null
-              ? Image.memory(
-              _imageFile!.readAsBytesSync(),
-              width: 300,
-              height: 300,
-                fit: BoxFit.scaleDown,
-              )
-              : Container(height: 300),
+              child: _imageFile != null
+                ? Image.memory(
+                  _imageFile!.readAsBytesSync(),
+                  width: 300,
+                  height: 300,
+                  fit: BoxFit.scaleDown,
+                )
+                : Container(height: 300),
             ),
             const SizedBox(height: 16),
             Row(
@@ -192,7 +191,6 @@ class _UploadPageState extends State<UploadPage> {
                     if (_imageFile != null) {
                       _isHost().then((value) async {
                         if (ready || gameReady) {
-                          print('am I heareeee');
                           await _updatePlayerNotReady();
                           Navigator.of(context).push(
                               MaterialPageRoute(builder: (context) => const CaptionPage()));

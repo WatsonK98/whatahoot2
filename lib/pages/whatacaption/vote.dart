@@ -17,7 +17,6 @@ class VotePage extends StatefulWidget {
 
 class _VotePageState extends State<VotePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  final TextEditingController _textEditingController = TextEditingController();
   List<String> captions = [];
   late Map<String, dynamic> captionsData;
   late String? _imageUrl;

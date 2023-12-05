@@ -44,7 +44,6 @@ class _CreateGamePageState extends State<CreateGamePage> {
   ///First signing in the player
   ///Then initializing the database space
   Future<void> _createServer() async {
-    SharedPreferences prefs = await _prefs;
 
     //Sign the player in to write to the database
     await FirebaseAuth.instance.signInAnonymously();
