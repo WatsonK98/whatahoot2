@@ -109,9 +109,12 @@ class _UploadPageState extends State<UploadPage> {
     int playerCount = prefs.getInt('playerCount') ?? 0;
 
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
-    final snapshot = await readyRef.get() as int;
+    final snapshot = await readyRef.get();
 
-    if (snapshot == playerCount) {
+    print(playerCount);
+    print(snapshot.value);
+
+    if (snapshot.value == (playerCount+1)) {
       await _updatePlayerNotReady();
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const CaptionPage()));

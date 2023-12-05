@@ -121,12 +121,10 @@ class _VotePageState extends State<VotePage> {
 
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     final snapshot = await readyRef.get();
+    await _updatePlayerNotReady();
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const CaptionPage()));
 
-    if (snapshot.value == playerCount) {
-      await _updatePlayerNotReady();
-      Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const CaptionPage()));
-    }
   }
 
   ///If not the host then await for stage change
