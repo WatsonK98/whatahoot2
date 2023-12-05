@@ -17,6 +17,15 @@ class _CreateVibeQRPageState extends State<CreateVibeQRPage> {
   late Future<String> _joinCode;
   late int _playerCount = 1;
 
+  Future<void> _awaitPlayers() async {
+    DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$_joinCode/players');
+    playersRef.onChildChanged.listen((event) {
+      setState(() {
+        _playerCount++;
+      });
+    });
+  }
+
   ///Save a count of the players for later
   Future<void> _savePlayerCount() async {
     SharedPreferences prefs = await _prefs;
@@ -26,16 +35,12 @@ class _CreateVibeQRPageState extends State<CreateVibeQRPage> {
   @override
   void initState() {
     super.initState();
+
     _joinCode = _prefs.then((SharedPreferences prefs) {
       return prefs.getString('joinCode') ?? '';
     });
 
-    DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$_joinCode/players');
-    playersRef.onChildAdded.listen((event) {
-      setState(() {
-        _playerCount++;
-      });
-    });
+    _awaitPlayers();
   }
 
   @override

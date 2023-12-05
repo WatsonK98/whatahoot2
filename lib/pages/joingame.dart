@@ -18,12 +18,12 @@ class _JoinGamePageState extends State<JoinGamePage> {
   final TextEditingController _nickNameController = TextEditingController();
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
   late bool gameStart = false;
-  Barcode? result;
   QRViewController? controller;
 
   ///Sign the user in
   Future<void> _signIn() async {
     SharedPreferences prefs = await _prefs;
+
     await prefs.setString('joinCode', _joinCodeController.text);
 
     //sign in anonymously so no email password combos
@@ -43,8 +43,16 @@ class _JoinGamePageState extends State<JoinGamePage> {
   ///Wait for the game to start if joined game
   Future<void> _awaitGameStart() async {
     SharedPreferences prefs = await _prefs;
-    String? joinCode = prefs.getString('joinCode');
-    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$joinCode/gameStage');
+
+    String? serverId = prefs.getString('joinCode');
+
+    DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$serverId/gameStage');
+    final snapshot = await gameStartRef.get();
+
+    print(snapshot.toString());
+    if (snapshot.toString() == '1') {
+      gameStart = true;
+    }
     gameStartRef.onChildChanged.listen((event) {
       if (event.snapshot.value == 1) {
         setState(() {
@@ -119,13 +127,14 @@ class _JoinGamePageState extends State<JoinGamePage> {
               ElevatedButton(
                   onPressed: () async {
                     if (_joinCodeController.text.isNotEmpty && _nickNameController.text.isNotEmpty) {
+                      controller!.stopCamera();
                       await _signIn();
-                      await _awaitGameStart();
-
-                      if (gameStart) {
-                        Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const UploadPage()));
-                      }
+                      _awaitGameStart().then((_) {
+                        if (gameStart) {
+                          Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const UploadPage()));
+                        }
+                      });
                     }
                   },
                   child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))

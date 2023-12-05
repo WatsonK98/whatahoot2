@@ -51,9 +51,9 @@ class _CreateGamePageState extends State<CreateGamePage> {
     //Initialize the database with the join code as the server ID
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(_joinCode);
     await serverRef.set({
+      'captions': {},
       'gameStage': 0,
       'players': {},
-      'comments': {}
     });
   }
 
@@ -73,7 +73,6 @@ class _CreateGamePageState extends State<CreateGamePage> {
     await playerRef.set({
       'nickname': nickname,
       'host': true,
-      'ready': false,
       'score': 0
     });
   }
