@@ -37,10 +37,6 @@ class _CaptionPageState extends State<CaptionPage> {
       _imageUrl = await firstImage.getDownloadURL();
 
       setState(() {});
-
-    } else {
-      Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const WinPage()));
     }
   }
 

@@ -30,7 +30,6 @@ class _UploadPageState extends State<UploadPage> {
     if (image == null) {
       return;
     }
-
     //Set the state to hold the image file
     setState(() {
       _imageFile = File(image.path);
@@ -111,15 +110,21 @@ class _UploadPageState extends State<UploadPage> {
     int playerCount = prefs.getInt('playerCount') ?? 0;
     int readyCount = 1;
 
-    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
-    serverRef.onChildChanged.listen((event) {
-      readyCount++;
-      if (readyCount == playerCount) {
-        setState(() {
-          ready = true;
-        });
-      }
-    });
+    if (readyCount == playerCount) {
+      setState(() {
+        ready = true;
+      });
+    } else {
+      DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
+      serverRef.onChildChanged.listen((event) {
+        readyCount++;
+        if (readyCount == playerCount) {
+          setState(() {
+            ready = true;
+          });
+        }
+      });
+    }
   }
 
   ///If not the host then await for stage change
@@ -183,15 +188,15 @@ class _UploadPageState extends State<UploadPage> {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: () async {
-
                     if (_imageFile != null) {
-                      await _isHost();
-
-                      if (ready || gameReady) {
-                        await _updatePlayerNotReady();
-                        Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const CaptionPage()));
-                      }
+                      _isHost().then((value) async {
+                        if (ready || gameReady) {
+                          print('am I heareeee');
+                          await _updatePlayerNotReady();
+                          Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const CaptionPage()));
+                        }
+                      });
                     }
                   },
                   child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))

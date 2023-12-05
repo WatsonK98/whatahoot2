@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +20,9 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
   late Future<String> _joinCode;
   late int _playerCount = 1;
 
+  ///Listen for the player count
+
+
   ///Save a count of the players for later
   Future<void> _savePlayerCount() async {
     SharedPreferences prefs = await _prefs;
@@ -27,6 +32,7 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
   @override
   void initState() {
     super.initState();
+
     _joinCode = _prefs.then((SharedPreferences prefs) {
       return prefs.getString('joinCode') ?? '';
     });
@@ -37,6 +43,11 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
         _playerCount++;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -59,28 +70,32 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
                 if(snapshot.hasError) {
                   return const Text('Error loading QR code');
                 } else {
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      QrImageView(
-                        data: '$snapshot.data',
-                        version: QrVersions.auto,
-                        size: 220,
+                  return SingleChildScrollView(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          QrImageView(
+                            data: '$snapshot.data',
+                            version: QrVersions.auto,
+                            size: 220,
+                          ),
+                          const SizedBox(height: 16),
+                          Text("${snapshot.data}", style: const TextStyle(fontSize: 45, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 16),
+                          Text('$_playerCount', style: const TextStyle(fontSize: 55)),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                              onPressed: () async {
+                                await _savePlayerCount();
+                                Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => const UploadPage()));
+                              },
+                              child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Text("${snapshot.data}", style: const TextStyle(fontSize: 45, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      Text('$_playerCount', style: const TextStyle(fontSize: 55)),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () async {
-                          await _savePlayerCount();
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const UploadPage()));
-                        },
-                        child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
-                      ),
-                    ],
+                    ),
                   );
                 }
             }
