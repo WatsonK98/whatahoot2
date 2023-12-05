@@ -52,14 +52,6 @@ class _JoinGamePageState extends State<JoinGamePage> {
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const UploadPage()));
     }
-    gameStartRef.onChildChanged.listen((event) {
-      if (event.snapshot.value == 1) {
-        setState(() {
-          Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const UploadPage()));
-        });
-      }
-    });
   }
 
   ///Once the qr code is captured it'll stop the camera
