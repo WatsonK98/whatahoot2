@@ -18,7 +18,7 @@ class VotePage extends StatefulWidget {
 class _VotePageState extends State<VotePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   List<String> captions = [];
-  late Map<String, dynamic> captionsData;
+  late Map<dynamic, dynamic> captionsData;
   late String? _imageUrl;
   late bool gameReady = false;
   late bool ready = false;
@@ -54,7 +54,9 @@ class _VotePageState extends State<VotePage> {
     DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
     final snapshot = await captionsRef.get();
 
-    captionsData = snapshot.value as Map<String, dynamic>;
+    print(snapshot.value);
+
+    captionsData = snapshot.value as Map<dynamic, dynamic>;
 
     captions.clear();
 
@@ -90,6 +92,11 @@ class _VotePageState extends State<VotePage> {
     if (snapshot.value == true) {
       await _updateGameStage();
       await _awaitPlayersReady();
+      if (ready) {
+        await _tallyVotes();
+        await _removeCaptions();
+        await _removeImage();
+      }
     } else {
       await _listenGameStage();
     }
@@ -128,15 +135,21 @@ class _VotePageState extends State<VotePage> {
     int playerCount = prefs.getInt('playerCount') ?? 0;
     int readyCount = 1;
 
-    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
-    serverRef.onChildChanged.listen((event) {
-      readyCount++;
-      if (readyCount == playerCount) {
-        setState(() {
-          ready = true;
-        });
-      }
-    });
+    if (readyCount == playerCount) {
+      setState(() {
+        ready = true;
+      });
+    } else {
+      DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
+      serverRef.onChildChanged.listen((event) {
+        readyCount++;
+        if (readyCount == playerCount) {
+          setState(() {
+            ready = true;
+          });
+        }
+      });
+    }
   }
 
   ///If not the host then await for stage change
@@ -201,7 +214,7 @@ class _VotePageState extends State<VotePage> {
     DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
     final snapshot = await captionsRef.get();
 
-    captionsData = snapshot.value as Map<String, dynamic>;
+    captionsData = snapshot.value as Map<dynamic, dynamic>;
 
     captionsData.forEach((uid, captionData) {
       if (caption == captionData['caption']) {
@@ -221,13 +234,13 @@ class _VotePageState extends State<VotePage> {
     DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$serverId/players');
     final snapshot = await captionsRef.get();
 
-    captionsData = snapshot.value as Map<String, dynamic>;
+    captionsData = snapshot.value as Map<dynamic, dynamic>;
 
     captionsData.forEach((uid, captionData) {
       int votes = captionData['votes'];
 
       if (playersRef.child(uid).key == uid) {
-        playersRef.child(uid).set(ServerValue.increment(votes));
+        playersRef.child('$uid/score').set(ServerValue.increment(1));
       }
     });
   }
@@ -272,17 +285,14 @@ class _VotePageState extends State<VotePage> {
                       onPressed: () async {
                         await _sendVote(captions[index]);
                         await _updatePlayerReady();
-                        await _isHost();
+                        _isHost().then((_) async {
+                          if (ready || gameReady) {
+                            await _updatePlayerNotReady();
 
-                        if (ready || gameReady) {
-                          await _tallyVotes();
-                          await _removeCaptions();
-                          await _removeImage();
-                          await _updatePlayerNotReady();
-
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const CaptionPage()));
-                        }
+                            Navigator.of(context).push(
+                                MaterialPageRoute(builder: (context) => const CaptionPage()));
+                          }
+                        });
                       },
                       child: const Text('Vote'),
                     ),

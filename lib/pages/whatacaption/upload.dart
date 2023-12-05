@@ -19,6 +19,7 @@ class UploadPage extends StatefulWidget {
 
 class _UploadPageState extends State<UploadPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  final Completer<void> _uploadCompleter = Completer<void>();
   late bool gameReady = false;
   late bool ready = false;
   static File? _imageFile;
@@ -44,7 +45,12 @@ class _UploadPageState extends State<UploadPage> {
     String? fileName = _imageFile?.path.split('/').last;
 
     final imageRef = FirebaseStorage.instance.ref().child('$serverId/$fileName');
-    await imageRef.putFile(_imageFile!);
+    UploadTask task = imageRef.putFile(_imageFile!);
+    task.snapshotEvents.listen((TaskSnapshot snapshot) {
+      if (snapshot.bytesTransferred == snapshot.totalBytes) {
+        _uploadCompleter.complete();
+      }
+    });
   }
 
   ///Update the players ready state
@@ -190,7 +196,7 @@ class _UploadPageState extends State<UploadPage> {
                   onPressed: () async {
                     if (_imageFile != null) {
                       _isHost().then((value) async {
-                        if (ready || gameReady) {
+                        if ((ready || gameReady) && _uploadCompleter.isCompleted) {
                           await _updatePlayerNotReady();
                           Navigator.of(context).push(
                               MaterialPageRoute(builder: (context) => const CaptionPage()));

@@ -22,7 +22,7 @@ class _WinPageState extends State<WinPage> {
 
     DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$serverId/players');
     final snapshot = await playersRef.get();
-    Map<String, dynamic> playersData = snapshot.value as Map<String, dynamic>;
+    Map<dynamic, dynamic> playersData = snapshot.value as Map<dynamic, dynamic>;
 
     int highscore = 0;
 
@@ -55,9 +55,12 @@ class _WinPageState extends State<WinPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(winner, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
-            ElevatedButton(onPressed: () {
-              Navigator.popUntil(context, ModalRoute.withName('/homepage'));
-            }, child: const Text('Back to Home'))
+            const Text('Wins!', style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+              child: const Text('Back to Home'))
           ],
         ),
       ),

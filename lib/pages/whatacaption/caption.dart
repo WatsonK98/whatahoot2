@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:whatahoot2/pages/whatacaption/vote.dart';
+import 'package:whatahoot2/pages/whatacaption/win.dart';
 
 
 ///Created By Nathanael Perez
@@ -36,6 +37,9 @@ class _CaptionPageState extends State<CaptionPage> {
       _imageUrl = await firstImage.getDownloadURL();
 
       setState(() {});
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const WinPage()));
     }
   }
 
@@ -206,7 +210,6 @@ class _CaptionPageState extends State<CaptionPage> {
               onPressed: () async {
 
                 if (_commentController.text.isNotEmpty) {
-                  print('I am here');
                   await _sendCaption();
                   await _updatePlayerReady();
                   _isHost().then((_) async {
