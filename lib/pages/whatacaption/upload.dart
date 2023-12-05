@@ -105,7 +105,7 @@ class _UploadPageState extends State<UploadPage> {
 
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
     await serverRef.update({
-      'gameStage': 1
+      'gameStage': 2
     });
   }
 
@@ -143,7 +143,7 @@ class _UploadPageState extends State<UploadPage> {
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/gameStage');
 
     DataSnapshot snapshot = await serverRef.get();
-    if (snapshot.value == 1) {
+    if (snapshot.value == 2) {
       setState(() {
         gameReady = true;
       });

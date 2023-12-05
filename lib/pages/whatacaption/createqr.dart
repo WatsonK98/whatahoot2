@@ -20,13 +20,33 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
   late Future<String> _joinCode;
   late int _playerCount = 1;
 
-  ///Listen for the player count
-
+  void _initPlayerListener() async {
+    DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$_joinCode/players');
+    playersRef.onChildAdded.listen((event) {
+      print('something happened');
+      print(event.snapshot.value);
+      setState(() {
+        _playerCount++;
+      });
+    });
+  }
 
   ///Save a count of the players for later
   Future<void> _savePlayerCount() async {
     SharedPreferences prefs = await _prefs;
     await prefs.setInt('playerCount', _playerCount);
+  }
+
+  ///If the host then update the game state
+  Future<void> _updateGameStage() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
+    await serverRef.update({
+      'gameStage': 1
+    });
   }
 
   @override
@@ -37,12 +57,7 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
       return prefs.getString('joinCode') ?? '';
     });
 
-    DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$_joinCode/players');
-    playersRef.onChildAdded.listen((event) {
-      setState(() {
-        _playerCount++;
-      });
-    });
+    _initPlayerListener();
   }
 
   @override
@@ -88,6 +103,7 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
                           ElevatedButton(
                               onPressed: () async {
                                 await _savePlayerCount();
+                                await _updateGameStage();
                                 Navigator.of(context).push(
                                     MaterialPageRoute(builder: (context) => const UploadPage()));
                               },

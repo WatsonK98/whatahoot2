@@ -17,7 +17,6 @@ class _JoinGamePageState extends State<JoinGamePage> {
   final TextEditingController _joinCodeController = TextEditingController();
   final TextEditingController _nickNameController = TextEditingController();
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
-  late bool gameStart = false;
   QRViewController? controller;
 
   ///Sign the user in
@@ -49,14 +48,15 @@ class _JoinGamePageState extends State<JoinGamePage> {
     DatabaseReference gameStartRef = FirebaseDatabase.instance.ref().child('$serverId/gameStage');
     final snapshot = await gameStartRef.get();
 
-    print(snapshot.toString());
-    if (snapshot.toString() == '1') {
-      gameStart = true;
+    if (snapshot.value == 1) {
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const UploadPage()));
     }
     gameStartRef.onChildChanged.listen((event) {
       if (event.snapshot.value == 1) {
         setState(() {
-          gameStart = true;
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const UploadPage()));
         });
       }
     });
@@ -129,12 +129,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
                     if (_joinCodeController.text.isNotEmpty && _nickNameController.text.isNotEmpty) {
                       controller!.stopCamera();
                       await _signIn();
-                      _awaitGameStart().then((_) {
-                        if (gameStart) {
-                          Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const UploadPage()));
-                        }
-                      });
+                      await _awaitGameStart();
                     }
                   },
                   child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
