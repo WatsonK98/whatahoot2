@@ -41,8 +41,9 @@ class _UploadPageState extends State<UploadPage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
+    String? fileName = _imageFile?.path.split('/').last;
 
-    final imageRef = FirebaseStorage.instance.ref().child('$serverId');
+    final imageRef = FirebaseStorage.instance.ref().child('$serverId/$fileName');
     await imageRef.putFile(_imageFile!);
   }
 

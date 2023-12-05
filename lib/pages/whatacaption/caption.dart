@@ -206,8 +206,8 @@ class _CaptionPageState extends State<CaptionPage> {
 
                   if (ready || gameReady) {
                     await _updatePlayerNotReady();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const VotePage()));
+                    //Navigator.of(context).push(
+                      //MaterialPageRoute(builder: (context) => const VotePage()));
                   }
                 }
               },
