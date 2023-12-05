@@ -21,6 +21,59 @@ class _CaptionPageState extends State<CaptionPage> {
   late String? _imageUrl;
   late bool ready = false;
 
+  ///Check if the last page was vote then remove captions and the image
+  Future<void> _hostOps() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    String? userId = prefs.getString('userId');
+
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(serverId!);
+
+    final hostRef = serverRef.child('players/$userId/host');
+    final snapshot = await hostRef.get();
+
+    final gameStageRef = serverRef.child('gameStage');
+    final stageFour = await gameStageRef.get();
+    if (stageFour.value == 4) {
+      if (snapshot.value == true) {
+        await _removeImage();
+        await _removeCaptions();
+      }
+    }
+  }
+
+  ///Remove the image from storage
+  Future<void> _removeImage() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+
+    final storageRef = FirebaseStorage.instance.ref();
+    var imageRef = storageRef.child('$serverId');
+    final ListResult result = await imageRef.listAll();
+
+    if (result.items.isNotEmpty) {
+      final Reference firstImage = result.items.first;
+      String imageName = firstImage.name;
+
+      imageRef = storageRef.child('$serverId/$imageName');
+      await imageRef.delete();
+    }
+  }
+
+  ///Remove the captions to start fresh for the next image
+  Future<void> _removeCaptions() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+
+    DatabaseReference captionRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
+    captionRef.set({
+
+    });
+  }
+
   ///Here we will get the image from storage and download it
   Future<void> _getImage() async {
     SharedPreferences prefs = await _prefs;
@@ -116,9 +169,9 @@ class _CaptionPageState extends State<CaptionPage> {
     int playerCount = prefs.getInt('playerCount') ?? 0;
 
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
-    final snapshot = await readyRef.get() as int;
+    final snapshot = await readyRef.get();
 
-    if (snapshot == playerCount) {
+    if (snapshot.value == playerCount) {
       await _updatePlayerNotReady();
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const VotePage()));
@@ -143,7 +196,9 @@ class _CaptionPageState extends State<CaptionPage> {
   @override
   void initState () {
     super.initState();
-    _getImage();
+    _hostOps().then((_) {
+      _getImage();
+    });
   }
 
   @override
@@ -202,7 +257,4 @@ class _CaptionPageState extends State<CaptionPage> {
       ),
     );
   }
-}
-
-class _imageFile {
 }

@@ -39,9 +39,6 @@ class _VotePageState extends State<VotePage> {
 
       setState(() {});
 
-    } else {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const WinPage()));
     }
   }
 
@@ -88,11 +85,6 @@ class _VotePageState extends State<VotePage> {
     if (snapshot.value == true) {
       await _updateGameStage();
       await _awaitPlayersReady();
-      if (ready) {
-        await _tallyVotes();
-        await _removeCaptions();
-        await _removeImage();
-      }
     } else {
       await _listenGameStage();
     }
@@ -128,9 +120,9 @@ class _VotePageState extends State<VotePage> {
     int playerCount = prefs.getInt('playerCount') ?? 0;
 
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
-    final snapshot = await readyRef.get() as int;
+    final snapshot = await readyRef.get();
 
-    if (snapshot == playerCount) {
+    if (snapshot.value == playerCount) {
       await _updatePlayerNotReady();
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const CaptionPage()));
@@ -149,37 +141,6 @@ class _VotePageState extends State<VotePage> {
     if (snapshot.value == 4) {
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const CaptionPage()));
-    }
-  }
-
-  ///Remove the captions to start fresh for the next image
-  Future<void> _removeCaptions() async {
-    SharedPreferences prefs = await _prefs;
-
-    String? serverId = prefs.getString('joinCode');
-
-    DatabaseReference captionRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
-    captionRef.set({
-
-    });
-  }
-
-  ///Remove the image from storage
-  Future<void> _removeImage() async {
-    SharedPreferences prefs = await _prefs;
-
-    String? serverId = prefs.getString('joinCode');
-
-    final storageRef = FirebaseStorage.instance.ref();
-    var imageRef = storageRef.child('$serverId');
-    final ListResult result = await imageRef.listAll();
-
-    if (result.items.isNotEmpty) {
-      final Reference firstImage = result.items.first;
-      String imageName = firstImage.name;
-
-      imageRef = storageRef.child('$serverId/$imageName');
-      await imageRef.delete();
     }
   }
 
@@ -220,7 +181,7 @@ class _VotePageState extends State<VotePage> {
       int votes = captionData['votes'];
 
       if (playersRef.child(uid).key == uid) {
-        playersRef.child('$uid/score').set(ServerValue.increment(1));
+        playersRef.child('$uid/score').set(ServerValue.increment(votes));
       }
     });
   }
