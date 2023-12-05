@@ -53,7 +53,9 @@ class _CreateGamePageState extends State<CreateGamePage> {
     await serverRef.set({
       'captions': {},
       'gameStage': 0,
-      'players': {},
+      'players': {
+        'ready': 1
+      },
     });
   }
 

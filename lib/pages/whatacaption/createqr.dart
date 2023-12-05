@@ -22,7 +22,13 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
   ///Save a count of the players for later
   Future<void> _savePlayerCount() async {
     SharedPreferences prefs = await _prefs;
-    await prefs.setInt('playerCount', _playerCount);
+
+    String? serverId = prefs.getString('joinCode');
+
+    DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    final snapshot = await readyRef.get();
+    await prefs.setInt('playerCount', snapshot.value as int);
+    await readyRef.set({'ready': 0});
   }
 
   ///If the host then update the game state
@@ -31,7 +37,7 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
 
     String? serverId = prefs.getString('joinCode');
 
-    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(serverId!);
     await serverRef.update({
       'gameStage': 1
     });

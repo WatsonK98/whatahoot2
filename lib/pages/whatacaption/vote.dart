@@ -63,7 +63,6 @@ class _VotePageState extends State<VotePage> {
     captionsData.forEach((uid, captionData) {
       captions.add(captionData['caption']);
     });
-
   }
 
   ///Update the players ready state
@@ -71,12 +70,9 @@ class _VotePageState extends State<VotePage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
-    String? uid = prefs.getString('userId');
 
-    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/$uid');
-    playerRef.update({
-      'ready': true
-    });
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    playerRef.set(ServerValue.increment(1));
   }
 
   ///Check if the player is the game host
@@ -110,7 +106,7 @@ class _VotePageState extends State<VotePage> {
 
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
     await serverRef.update({
-      'gameStage': 3
+      'gameStage': 4
     });
   }
 
@@ -119,12 +115,9 @@ class _VotePageState extends State<VotePage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
-    String? uid = prefs.getString('userId');
 
-    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/$uid');
-    playerRef.update({
-      'ready': false
-    });
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    playerRef.set({'ready': 0});
   }
 
   ///Await for players ready
@@ -133,22 +126,13 @@ class _VotePageState extends State<VotePage> {
 
     String? serverId = prefs.getString('joinCode');
     int playerCount = prefs.getInt('playerCount') ?? 0;
-    int readyCount = 1;
 
-    if (readyCount == playerCount) {
-      setState(() {
-        ready = true;
-      });
-    } else {
-      DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
-      serverRef.onChildChanged.listen((event) {
-        readyCount++;
-        if (readyCount == playerCount) {
-          setState(() {
-            ready = true;
-          });
-        }
-      });
+    DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    final snapshot = await readyRef.get() as int;
+
+    if (snapshot == playerCount) {
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const CaptionPage()));
     }
   }
 
@@ -161,16 +145,9 @@ class _VotePageState extends State<VotePage> {
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/gameStage');
 
     DataSnapshot snapshot = await serverRef.get();
-    if (snapshot.value == 3) {
-      setState(() {
-        gameReady = true;
-      });
-    } else {
-      serverRef.onChildChanged.listen((event) async {
-        setState(() {
-          gameReady = true;
-        });
-      });
+    if (snapshot.value == 4) {
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const CaptionPage()));
     }
   }
 
@@ -222,6 +199,8 @@ class _VotePageState extends State<VotePage> {
         voteRef.set(ServerValue.increment(1));
       }
     });
+    await _updatePlayerReady();
+    ready = true;
   }
 
   ///Tally the votes and add it to the players score
@@ -283,21 +262,22 @@ class _VotePageState extends State<VotePage> {
                     title: Text(captions[index]),
                     trailing: ElevatedButton(
                       onPressed: () async {
-                        await _sendVote(captions[index]);
-                        await _updatePlayerReady();
-                        _isHost().then((_) async {
-                          if (ready || gameReady) {
-                            await _updatePlayerNotReady();
-
-                            Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const CaptionPage()));
-                          }
-                        });
+                        if (!ready) {
+                          await _sendVote(captions[index]);
+                        } else {
+                          null;
+                        }
                       },
                       child: const Text('Vote'),
                     ),
                   );
                 }
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await _isHost();
+              },
+              child: Text('Continue!')
             ),
           ],
         ),

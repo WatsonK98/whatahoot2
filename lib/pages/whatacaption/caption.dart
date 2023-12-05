@@ -19,7 +19,6 @@ class _CaptionPageState extends State<CaptionPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final TextEditingController _commentController = TextEditingController();
   late String? _imageUrl;
-  late bool gameReady = false;
   late bool ready = false;
 
   ///Here we will get the image from storage and download it
@@ -55,6 +54,8 @@ class _CaptionPageState extends State<CaptionPage> {
       'caption': _commentController.text,
       'votes': 0
     });
+    await _updatePlayerReady();
+    ready = true;
   }
 
   ///Update the players ready state
@@ -62,12 +63,9 @@ class _CaptionPageState extends State<CaptionPage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
-    String? uid = prefs.getString('userId');
 
-    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/$uid');
-    playerRef.update({
-      'ready': true
-    });
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    playerRef.set(ServerValue.increment(1));
   }
 
   ///Check if the player is the game host
@@ -96,7 +94,7 @@ class _CaptionPageState extends State<CaptionPage> {
 
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
     await serverRef.update({
-      'gameStage': 2
+      'gameStage': 3
     });
   }
 
@@ -105,12 +103,9 @@ class _CaptionPageState extends State<CaptionPage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
-    String? uid = prefs.getString('userId');
 
-    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/$uid');
-    playerRef.update({
-      'ready': false
-    });
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    playerRef.set({'ready': 0});
   }
 
   ///Await for players ready
@@ -119,22 +114,14 @@ class _CaptionPageState extends State<CaptionPage> {
 
     String? serverId = prefs.getString('joinCode');
     int playerCount = prefs.getInt('playerCount') ?? 0;
-    int readyCount = 1;
 
-    if (readyCount == playerCount) {
-      setState(() {
-        ready = true;
-      });
-    } else {
-      DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
-      serverRef.onChildChanged.listen((event) {
-        readyCount++;
-        if (readyCount == playerCount) {
-          setState(() {
-            ready = true;
-          });
-        }
-      });
+    DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    final snapshot = await readyRef.get() as int;
+
+    if (snapshot == playerCount) {
+      await _updatePlayerNotReady();
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const VotePage()));
     }
   }
 
@@ -147,16 +134,9 @@ class _CaptionPageState extends State<CaptionPage> {
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/gameStage');
 
     DataSnapshot snapshot = await serverRef.get();
-    if (snapshot.value == 2) {
-      setState(() {
-        gameReady = true;
-      });
-    } else {
-      serverRef.onChildChanged.listen((event) async {
-        setState(() {
-          gameReady = true;
-        });
-      });
+    if (snapshot.value == 3) {
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const VotePage()));
     }
   }
 
@@ -208,17 +188,11 @@ class _CaptionPageState extends State<CaptionPage> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
-
-                if (_commentController.text.isNotEmpty) {
+                if (_commentController.text.isNotEmpty && !ready) {
                   await _sendCaption();
-                  await _updatePlayerReady();
-                  _isHost().then((_) async {
-                    if (ready || gameReady) {
-                      await _updatePlayerNotReady();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => const VotePage()));
-                    }
-                  });
+                  await _isHost();
+                } else {
+                  await _isHost();
                 }
               },
               child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

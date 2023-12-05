@@ -20,8 +20,6 @@ class UploadPage extends StatefulWidget {
 class _UploadPageState extends State<UploadPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final Completer<void> _uploadCompleter = Completer<void>();
-  late bool gameReady = false;
-  late bool ready = false;
   static File? _imageFile;
 
   ///Get image from device
@@ -58,12 +56,9 @@ class _UploadPageState extends State<UploadPage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
-    String? uid = prefs.getString('userId');
 
-    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/$uid');
-    playerRef.update({
-      'ready': true
-    });
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    playerRef.set(ServerValue.increment(1));
   }
 
   ///Make the player not ready again
@@ -71,12 +66,9 @@ class _UploadPageState extends State<UploadPage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
-    String? uid = prefs.getString('userId');
 
-    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/$uid');
-    playerRef.update({
-      'ready': false
-    });
+    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    playerRef.set({'ready': 0});
   }
 
   ///Check if the player is the game host
@@ -115,22 +107,14 @@ class _UploadPageState extends State<UploadPage> {
 
     String? serverId = prefs.getString('joinCode');
     int playerCount = prefs.getInt('playerCount') ?? 0;
-    int readyCount = 1;
 
-    if (readyCount == playerCount) {
-      setState(() {
-        ready = true;
-      });
-    } else {
-      DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/players');
-      serverRef.onChildChanged.listen((event) {
-        readyCount++;
-        if (readyCount == playerCount) {
-          setState(() {
-            ready = true;
-          });
-        }
-      });
+    DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
+    final snapshot = await readyRef.get() as int;
+
+    if (snapshot == playerCount) {
+      await _updatePlayerNotReady();
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const CaptionPage()));
     }
   }
 
@@ -144,15 +128,8 @@ class _UploadPageState extends State<UploadPage> {
 
     DataSnapshot snapshot = await serverRef.get();
     if (snapshot.value == 2) {
-      setState(() {
-        gameReady = true;
-      });
-    } else {
-      serverRef.onChildChanged.listen((event) async {
-        setState(() {
-          gameReady = true;
-        });
-      });
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const CaptionPage()));
     }
   }
 
@@ -184,9 +161,13 @@ class _UploadPageState extends State<UploadPage> {
               children: <Widget>[
                 ElevatedButton.icon(
                   onPressed: () async {
-                    await _getImage();
-                    await _uploadImage();
-                    await _updatePlayerReady();
+                    if(!_uploadCompleter.isCompleted){
+                      await _getImage();
+                      await _uploadImage();
+                      await _updatePlayerReady();
+                    } else {
+                      null;
+                    }
                   },
                   icon: const Icon(Icons.cloud_upload),
                   label: const Text('Upload', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
@@ -194,14 +175,8 @@ class _UploadPageState extends State<UploadPage> {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: () async {
-                    if (_imageFile != null) {
-                      _isHost().then((value) async {
-                        if ((ready || gameReady) && _uploadCompleter.isCompleted) {
-                          await _updatePlayerNotReady();
-                          Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const CaptionPage()));
-                        }
-                      });
+                    if (_imageFile != null && _uploadCompleter.isCompleted) {
+                      await _isHost();
                     }
                   },
                   child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))

@@ -31,12 +31,14 @@ class _JoinGamePageState extends State<JoinGamePage> {
     String joinCode = _joinCodeController.text;
 
     //Initialize their spot in the database
-    DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$joinCode/players/$uid');
+    DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$joinCode/players');
+    final playerRef = playersRef.child(uid!);
     await playerRef.set({
       'nickname': _nickNameController.text,
       'host': false,
       'score': 0
     });
+    await playersRef.child('ready').set(ServerValue.increment(1));
   }
 
   ///Wait for the game to start if joined game
