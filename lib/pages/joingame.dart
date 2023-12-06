@@ -40,6 +40,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
       'score': 0
     });
     ready = true;
+    await prefs.setString('userId', uid);
     await playersRef.child('ready').set(ServerValue.increment(1));
   }
 

@@ -174,7 +174,7 @@ class _VotePageState extends State<VotePage> {
     DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
     DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$serverId/players');
     final snapshot = await captionsRef.get();
-
+    print(snapshot.value);
     captionsData = snapshot.value as Map<dynamic, dynamic>;
 
     captionsData.forEach((uid, captionData) {
