@@ -27,8 +27,6 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
 
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     final snapshot = await readyRef.get();
-    print('THRERERERERERERERERERERE');
-    print(snapshot.value);
     await prefs.setInt('playerCount', snapshot.value as int);
     await readyRef.set(0);
   }
