@@ -36,8 +36,9 @@ class _UploadPageState extends State<UploadPage> {
     final snapshot = await hostRef.get();
 
     final gameStageRef = serverRef.child('gameStage');
-    final stageFour = await gameStageRef.get();
-    if (stageFour.value == 3) {
+    final round = serverRef.child('round');
+    final stageThree = await gameStageRef.get();
+    if (stageThree.value == 3) {
       if (snapshot.value == true) {
         await _removeImage();
         await _removeCaption();
