@@ -9,6 +9,7 @@ import 'package:whatahoot2/pages/whatacaption/caption.dart';
 class VotePage extends StatefulWidget {
   const VotePage({super.key});
 
+  ///Create the state
   @override
   State<VotePage> createState() => _VotePageState();
 }
@@ -25,12 +26,15 @@ class _VotePageState extends State<VotePage> {
   Future<void> _getImage() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //creata storage reference
     final storageRef = FirebaseStorage.instance.ref();
     final imageRef = storageRef.child('$serverId');
     final ListResult result = await imageRef.listAll();
 
+    //get the download url
     if (result.items.isNotEmpty) {
       final Reference firstImage = result.items.first;
       _imageUrl = await firstImage.getDownloadURL();
@@ -44,15 +48,20 @@ class _VotePageState extends State<VotePage> {
   Future<void> _getCaptions() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //make reference
     DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
     final snapshot = await captionsRef.get();
 
+    //Map the data
     captionsData = snapshot.value as Map<dynamic, dynamic>;
 
+    //clear the captions data
     captions.clear();
 
+    //list all the caption data
     captionsData.forEach((uid, captionData) {
       captions.add(captionData['caption']);
     });
@@ -62,8 +71,10 @@ class _VotePageState extends State<VotePage> {
   Future<void> _updatePlayerReady() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //create reference to ready and increment
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     playerRef.set(ServerValue.increment(1));
   }
@@ -72,12 +83,15 @@ class _VotePageState extends State<VotePage> {
   Future<void> _isHost() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
     String? userId = prefs.getString('userId');
 
+    //create host reference
     DatabaseReference hostRef = FirebaseDatabase.instance.ref().child('$serverId/players/$userId/host');
     final snapshot = await hostRef.get();
 
+    //check if host
     if (snapshot.value == true) {
       await _awaitPlayersReady();
     } else {
@@ -89,8 +103,10 @@ class _VotePageState extends State<VotePage> {
   Future<void> _updateGameStage() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //update game stage
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
     await serverRef.update({
       'gameStage': 4
@@ -101,8 +117,10 @@ class _VotePageState extends State<VotePage> {
   Future<void> _updatePlayerNotReady() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //set ready ref to 0
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     playerRef.set(0);
   }
@@ -111,12 +129,15 @@ class _VotePageState extends State<VotePage> {
   Future<void> _awaitPlayersReady() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
     int playerCount = prefs.getInt('playerCount') ?? 0;
 
+    //get the ready info
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     final snapshot = await readyRef.get();
 
+    //if all players ready then move on
     if (snapshot.value == playerCount) {
       await _updateGameStage();
       await _tallyVotes();
@@ -130,11 +151,15 @@ class _VotePageState extends State<VotePage> {
   Future<void> _listenGameStage() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //check stage
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/gameStage');
 
     DataSnapshot snapshot = await serverRef.get();
+
+    //move on
     if (snapshot.value == 4) {
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const CaptionPage()));
@@ -145,13 +170,17 @@ class _VotePageState extends State<VotePage> {
   Future<void> _sendVote(String caption) async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //get caption ref
     DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
     final snapshot = await captionsRef.get();
 
+    //Map the data
     captionsData = snapshot.value as Map<dynamic, dynamic>;
 
+    //send vote to right caption
     captionsData.forEach((uid, captionData) {
       if (caption == captionData['caption']) {
         DatabaseReference voteRef = FirebaseDatabase.instance.ref().child('$serverId/captions/$uid/votes');
@@ -166,13 +195,18 @@ class _VotePageState extends State<VotePage> {
   Future<void> _tallyVotes() async {
     SharedPreferences prefs = await _prefs;
 
+    //get data
     String? serverId = prefs.getString('joinCode');
 
+    //create correct references
     DatabaseReference captionsRef = FirebaseDatabase.instance.ref().child('$serverId/captions');
     DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$serverId/players');
     final snapshot = await captionsRef.get();
+
+    //map data
     captionsData = snapshot.value as Map<dynamic, dynamic>;
 
+    //Apply the votes to the right player
     captionsData.forEach((uid, captionData) {
       int votes = captionData['votes'];
 

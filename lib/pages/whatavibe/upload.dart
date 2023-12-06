@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:whatahoot2/pages/whatavibe/vote.dart';
 
 ///Created by David Vazquez
 
@@ -36,7 +37,6 @@ class _UploadPageState extends State<UploadPage> {
     final snapshot = await hostRef.get();
 
     final gameStageRef = serverRef.child('gameStage');
-    final round = serverRef.child('round');
     final stageThree = await gameStageRef.get();
     if (stageThree.value == 3) {
       if (snapshot.value == true) {
@@ -112,11 +112,14 @@ class _UploadPageState extends State<UploadPage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
+    String? uid = prefs.getString('userId');
     String? fileName = _imageFile?.path.split('/').last;
     fileName = fileName?.replaceRange((fileName.length-4), (fileName.length), '');
 
     DatabaseReference captionRef = FirebaseDatabase.instance.ref().child('$serverId/captions/$fileName');
     captionRef.set({
+      'uid': uid,
+      'votes': 0,
       'title': _titleController.text,
       'artist': _artistController.text
     });
@@ -185,7 +188,8 @@ class _UploadPageState extends State<UploadPage> {
     if (snapshot.value == playerCount) {
       await _updateGameStage();
       await _updatePlayerNotReady();
-      //Navigate
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const VotePage()));
     }
   }
 
@@ -199,7 +203,8 @@ class _UploadPageState extends State<UploadPage> {
 
     DataSnapshot snapshot = await serverRef.get();
     if (snapshot.value == 2) {
-      //Navigate
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const VotePage()));
     }
   }
 

@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class WinPage extends StatefulWidget {
   const WinPage({super.key});
 
-
+  ///Create the state
   @override
   State<WinPage> createState() => _WinPageState();
 }
@@ -20,10 +20,14 @@ class _WinPageState extends State<WinPage> {
   Future<void> _getWinner() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //create reference
     DatabaseReference playersRef = FirebaseDatabase.instance.ref().child('$serverId/players');
     final snapshot = await playersRef.get();
+
+    //map data only here
     Map<dynamic, dynamic> playersData = snapshot.value as Map<dynamic, dynamic>;
 
     int highscore = 0;
@@ -47,12 +51,15 @@ class _WinPageState extends State<WinPage> {
   Future<void> _isHost() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
     String? userId = prefs.getString('userId');
 
+    //get host ref
     DatabaseReference hostRef = FirebaseDatabase.instance.ref().child('$serverId/players/$userId/host');
     final snapshot = await hostRef.get();
 
+    //check if host
     if (snapshot.value == true) {
       await _deleteServer();
       await _deleteImages();
@@ -62,17 +69,21 @@ class _WinPageState extends State<WinPage> {
     }
   }
 
+  ///Delete the server
   Future<void> _deleteServer() async {
     SharedPreferences prefs = await _prefs;
 
+    //get data, ref, and delete the server
     String? serverId = prefs.getString('joinCode');
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(serverId!);
     await serverRef.remove();
   }
 
+  ///delete storage folder
   Future<void> _deleteImages() async {
     SharedPreferences prefs = await _prefs;
 
+    //get data and delete
     String? serverId = prefs.getString('joinCode');
 
     await FirebaseStorage.instance.ref().child(serverId!).delete();

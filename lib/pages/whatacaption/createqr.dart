@@ -11,6 +11,7 @@ import 'package:whatahoot2/pages/whatacaption/upload.dart';
 class CreateCaptionQRPage extends StatefulWidget {
   const CreateCaptionQRPage({super.key});
 
+  ///Create the QR state
   @override
   State<CreateCaptionQRPage> createState() => _CreateCaptionQRPageState();
 }
@@ -23,8 +24,10 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
   Future<void> _savePlayerCount() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //Create a ready reference and set to 0
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     final snapshot = await readyRef.get();
     await prefs.setInt('playerCount', snapshot.value as int);
@@ -35,8 +38,10 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
   Future<void> _updateGameStage() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //Create a stage reference and update
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(serverId!);
     await serverRef.update({
       'gameStage': 1
@@ -47,6 +52,7 @@ class _CreateCaptionQRPageState extends State<CreateCaptionQRPage> {
   void initState() {
     super.initState();
 
+    //Initialize the joincode
     _joinCode = _prefs.then((SharedPreferences prefs) {
       return prefs.getString('joinCode') ?? '';
     });

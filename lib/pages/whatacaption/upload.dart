@@ -24,6 +24,7 @@ class _UploadPageState extends State<UploadPage> {
 
   ///Get image from device
   Future<void> _getImage() async {
+    //Load the imagepicker
     ImagePicker picker = ImagePicker();
     XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image == null) {
@@ -39,11 +40,14 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _uploadImage() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
     String? fileName = _imageFile?.path.split('/').last;
 
+    //create a storage reference
     final imageRef = FirebaseStorage.instance.ref().child('$serverId/$fileName');
     UploadTask task = imageRef.putFile(_imageFile!);
+    //measure progress
     task.snapshotEvents.listen((TaskSnapshot snapshot) {
       if (snapshot.bytesTransferred == snapshot.totalBytes) {
         _uploadCompleter.complete();
@@ -55,8 +59,10 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _updatePlayerReady() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //create a reference and increment
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     playerRef.set(ServerValue.increment(1));
   }
@@ -65,8 +71,10 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _updatePlayerNotReady() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //reset the ready
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     playerRef.set(0);
   }
@@ -75,12 +83,15 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _isHost() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
     String? userId = prefs.getString('userId');
 
+    //create a reference
     DatabaseReference hostRef = FirebaseDatabase.instance.ref().child('$serverId/players/$userId/host');
     final snapshot = await hostRef.get();
 
+    //if host then wait players, if not wait for stage
     if (snapshot.value == true) {
       await _awaitPlayersReady();
     } else {
@@ -92,8 +103,10 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _updateGameStage() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //make reference and update the stage
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
     await serverRef.update({
       'gameStage': 2
@@ -104,14 +117,15 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _awaitPlayersReady() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
     int playerCount = prefs.getInt('playerCount') ?? 0;
 
+    //get players ready
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     final snapshot = await readyRef.get();
 
-    print(playerCount);
-
+    //if player count is equal to ready then move on
     if (snapshot.value == playerCount) {
       await _updateGameStage();
       await _updatePlayerNotReady();
@@ -124,10 +138,13 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _listenGameStage() async {
     SharedPreferences prefs = await _prefs;
 
+    //load data
     String? serverId = prefs.getString('joinCode');
 
+    //create reference
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId/gameStage');
 
+    //if equal to stage then move on
     DataSnapshot snapshot = await serverRef.get();
     if (snapshot.value == 2) {
       Navigator.of(context).push(
