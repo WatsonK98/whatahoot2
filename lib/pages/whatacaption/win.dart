@@ -36,7 +36,9 @@ class _WinPageState extends State<WinPage> {
           winner = playerData['nickname'];
         });
       } else if (score == highscore && score > 0) {
-        winner = 'Tie!';
+        setState(() {
+          winner = 'Tie!';
+        });
       }
     });
   }
@@ -87,14 +89,13 @@ class _WinPageState extends State<WinPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Vote!"),
+        title: const Text("Winner!"),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(winner, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
-            const Text('Wins!', style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
             ElevatedButton(
               onPressed: () async {
                 await _isHost();
