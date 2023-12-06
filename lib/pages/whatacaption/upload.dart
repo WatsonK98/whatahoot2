@@ -68,7 +68,7 @@ class _UploadPageState extends State<UploadPage> {
     String? serverId = prefs.getString('joinCode');
 
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
-    playerRef.set({'ready': 0});
+    playerRef.set(0);
   }
 
   ///Check if the player is the game host
@@ -111,10 +111,7 @@ class _UploadPageState extends State<UploadPage> {
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     final snapshot = await readyRef.get();
 
-    print(playerCount);
-    print(snapshot.value);
-
-    if (snapshot.value == (playerCount+1)) {
+    if (snapshot.value == playerCount) {
       await _updatePlayerNotReady();
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const CaptionPage()));

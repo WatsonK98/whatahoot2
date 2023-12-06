@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class WinPage extends StatefulWidget {
   const WinPage({super.key});
@@ -38,6 +39,32 @@ class _WinPageState extends State<WinPage> {
     });
   }
 
+  ///Delete the server since it is no longer needed
+  Future<void> _isHost() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    String? userId = prefs.getString('userId');
+
+    DatabaseReference hostRef = FirebaseDatabase.instance.ref().child('$serverId/players/$userId/host');
+    final snapshot = await hostRef.get();
+
+    if (snapshot.value == true) {
+      await _deleteServer();
+      await FirebaseAuth.instance.signOut();
+    } else {
+      await FirebaseAuth.instance.signOut();
+    }
+  }
+
+  Future<void> _deleteServer() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(serverId!);
+    await serverRef.remove();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -58,7 +85,8 @@ class _WinPageState extends State<WinPage> {
             Text(winner, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
             const Text('Wins!', style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                await _isHost();
                 Navigator.popUntil(context, (route) => route.isFirst);
               },
               child: const Text('Back to Home'))

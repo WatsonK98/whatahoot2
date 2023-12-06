@@ -158,7 +158,7 @@ class _CaptionPageState extends State<CaptionPage> {
     String? serverId = prefs.getString('joinCode');
 
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
-    playerRef.set({'ready': 0});
+    playerRef.set(0);
   }
 
   ///Await for players ready
