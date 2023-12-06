@@ -132,7 +132,6 @@ class _CaptionPageState extends State<CaptionPage> {
     final snapshot = await hostRef.get();
 
     if (snapshot.value == true) {
-      await _updateGameStage();
       await _awaitPlayersReady();
     } else {
       await _listenGameStage();
@@ -172,6 +171,7 @@ class _CaptionPageState extends State<CaptionPage> {
     final snapshot = await readyRef.get();
 
     if (snapshot.value == playerCount) {
+      await _updateGameStage();
       await _updatePlayerNotReady();
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const VotePage()));
@@ -246,7 +246,7 @@ class _CaptionPageState extends State<CaptionPage> {
                 if (_commentController.text.isNotEmpty && !ready) {
                   await _sendCaption();
                   await _isHost();
-                } else {
+                } else if (ready) {
                   await _isHost();
                 }
               },

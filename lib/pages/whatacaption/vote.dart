@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:whatahoot2/pages/whatacaption/caption.dart';
-import 'package:whatahoot2/pages/whatacaption/win.dart';
 
 ///Created by Gustavo Rubio
 
@@ -83,7 +82,6 @@ class _VotePageState extends State<VotePage> {
     final snapshot = await hostRef.get();
 
     if (snapshot.value == true) {
-      await _updateGameStage();
       await _awaitPlayersReady();
     } else {
       await _listenGameStage();
@@ -109,7 +107,7 @@ class _VotePageState extends State<VotePage> {
     String? serverId = prefs.getString('joinCode');
 
     DatabaseReference playerRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
-    playerRef.set({'ready': 0});
+    playerRef.set(0);
   }
 
   ///Await for players ready
@@ -121,10 +119,13 @@ class _VotePageState extends State<VotePage> {
 
     DatabaseReference readyRef = FirebaseDatabase.instance.ref().child('$serverId/players/ready');
     final snapshot = await readyRef.get();
-    await _updatePlayerNotReady();
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const CaptionPage()));
 
+    if (snapshot.value == playerCount) {
+      await _updateGameStage();
+      await _updatePlayerNotReady();
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const CaptionPage()));
+    }
   }
 
   ///If not the host then await for stage change

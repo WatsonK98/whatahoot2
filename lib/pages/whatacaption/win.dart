@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class WinPage extends StatefulWidget {
@@ -51,6 +52,7 @@ class _WinPageState extends State<WinPage> {
 
     if (snapshot.value == true) {
       await _deleteServer();
+      await _deleteImages();
       await FirebaseAuth.instance.signOut();
     } else {
       await FirebaseAuth.instance.signOut();
@@ -63,6 +65,14 @@ class _WinPageState extends State<WinPage> {
     String? serverId = prefs.getString('joinCode');
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(serverId!);
     await serverRef.remove();
+  }
+
+  Future<void> _deleteImages() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+
+    await FirebaseStorage.instance.ref().child(serverId!).delete();
   }
 
   @override

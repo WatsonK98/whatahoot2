@@ -18,6 +18,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
   final TextEditingController _nickNameController = TextEditingController();
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
+  bool ready = false;
 
   ///Sign the user in
   Future<void> _signIn() async {
@@ -38,6 +39,7 @@ class _JoinGamePageState extends State<JoinGamePage> {
       'host': false,
       'score': 0
     });
+    ready = true;
     await playersRef.child('ready').set(ServerValue.increment(1));
   }
 
@@ -122,8 +124,12 @@ class _JoinGamePageState extends State<JoinGamePage> {
                   onPressed: () async {
                     if (_joinCodeController.text.isNotEmpty && _nickNameController.text.isNotEmpty) {
                       controller!.stopCamera();
-                      await _signIn();
-                      await _awaitGameStart();
+                      if (!ready) {
+                        await _signIn();
+                        await _awaitGameStart();
+                      } else {
+                        await _awaitGameStart();
+                      }
                     }
                   },
                   child: const Text("Continue", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
