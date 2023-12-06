@@ -18,8 +18,64 @@ class UploadPage extends StatefulWidget {
 
 class _UploadPageState extends State<UploadPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _artistController = TextEditingController();
   final Completer<void> _uploadCompleter = Completer<void>();
   static File? _imageFile;
+
+  ///Check if the last page was vote then remove captions and the image
+  Future<void> _hostOps() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    String? userId = prefs.getString('userId');
+
+    DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(serverId!);
+
+    final hostRef = serverRef.child('players/$userId/host');
+    final snapshot = await hostRef.get();
+
+    final gameStageRef = serverRef.child('gameStage');
+    final stageFour = await gameStageRef.get();
+    if (stageFour.value == 3) {
+      if (snapshot.value == true) {
+        await _removeImage();
+        await _removeCaption();
+      }
+    }
+  }
+
+  ///Remove the image from storage
+  Future<void> _removeImage() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+
+    final storageRef = FirebaseStorage.instance.ref();
+    var imageRef = storageRef.child('$serverId');
+    final ListResult result = await imageRef.listAll();
+
+    if (result.items.isNotEmpty) {
+      final Reference firstImage = result.items.first;
+
+      String imageName = firstImage.name;
+      await prefs.setString('imageName', imageName);
+
+      imageRef = storageRef.child('$serverId/$imageName');
+      await imageRef.delete();
+    }
+  }
+
+  ///Remove the captions to start fresh for the next image
+  Future<void> _removeCaption() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    String? imageName = prefs.getString('imageName');
+
+    DatabaseReference captionRef = FirebaseDatabase.instance.ref().child('$serverId/captions/$imageName');
+    captionRef.remove();
+  }
 
   ///Get image from device
   Future<void> _getImage() async {
@@ -40,6 +96,7 @@ class _UploadPageState extends State<UploadPage> {
 
     String? serverId = prefs.getString('joinCode');
     String? fileName = _imageFile?.path.split('/').last;
+    fileName = fileName?.replaceRange((fileName.length-4), (fileName.length), '');
 
     final imageRef = FirebaseStorage.instance.ref().child('$serverId/$fileName');
     UploadTask task = imageRef.putFile(_imageFile!);
@@ -48,6 +105,21 @@ class _UploadPageState extends State<UploadPage> {
         _uploadCompleter.complete();
       }
     });
+  }
+
+  Future<void> _setCaption() async {
+    SharedPreferences prefs = await _prefs;
+
+    String? serverId = prefs.getString('joinCode');
+    String? fileName = _imageFile?.path.split('/').last;
+    fileName = fileName?.replaceRange((fileName.length-4), (fileName.length), '');
+
+    DatabaseReference captionRef = FirebaseDatabase.instance.ref().child('$serverId/captions/$fileName');
+    captionRef.set({
+      'title': _titleController.text,
+      'artist': _artistController.text
+    });
+    await _updatePlayerReady();
   }
 
   ///Update the players ready state
@@ -131,58 +203,93 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   @override
+  void initState () {
+    super.initState();
+    _hostOps().then((_) {
+      _getImage();
+    });
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _artistController.dispose();
+    _imageFile?.delete();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Upload!'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const SizedBox(height: 16),
-            Center(
-              child: _imageFile != null
-                  ? Image.memory(
-                _imageFile!.readAsBytesSync(),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(height: 16),
+              Center(
+                child: _imageFile != null
+                    ? Image.memory(
+                  _imageFile!.readAsBytesSync(),
+                  width: 300,
+                  height: 300,
+                  fit: BoxFit.scaleDown,
+                )
+                    : Container(height: 300),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                  onPressed: () async {
+                    if(!_uploadCompleter.isCompleted){
+                      await _getImage();
+                      await _uploadImage();
+                    } else {
+                      null;
+                    }
+                  },
+                  icon: const Icon(Icons.cloud_upload),
+                  label: const Text('Upload', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
                 width: 300,
-                height: 300,
-                fit: BoxFit.scaleDown,
-              )
-                  : Container(height: 300),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                ElevatedButton.icon(
-                    onPressed: () async {
-                      if(!_uploadCompleter.isCompleted){
-                        await _getImage();
-                        await _uploadImage();
-                        await _updatePlayerReady();
-                      } else {
-                        null;
-                      }
-                    },
-                    icon: const Icon(Icons.cloud_upload),
-                    label: const Text('Upload', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                child: TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter a Song title',
+                  ),
                 ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                    onPressed: () async {
-                      if (_imageFile != null && _uploadCompleter.isCompleted) {
-                        await _isHost();
-                      }
-                    },
-                    child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 300,
+                child: TextField(
+                  controller: _artistController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter an artist',
+                  ),
                 ),
-              ],
-            )
-          ],
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                  onPressed: () async {
+                    if (_imageFile != null && _uploadCompleter.isCompleted && _titleController.text.isNotEmpty && _artistController.text.isNotEmpty) {
+                      await _setCaption();
+                      await _isHost();
+                    }
+                  },
+                  child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+              ),
+            ],
+          ),
         ),
-      ),
+      )
     );
   }
 }
