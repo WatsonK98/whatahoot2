@@ -30,12 +30,13 @@ class _WinPageState extends State<WinPage> {
 
     //compare players' scores
     playersData.forEach((uid, playerData) {
-      print(playerData);
-      final score = playerData['score'];
+      final score = playerData['score'] as int;
       if (score > highscore) {
         setState(() {
           winner = playerData['nickname'];
         });
+      } else if (score == highscore && score > 0) {
+        winner = 'Tie!';
       }
     });
   }

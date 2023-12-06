@@ -122,6 +122,7 @@ class _VotePageState extends State<VotePage> {
 
     if (snapshot.value == playerCount) {
       await _updateGameStage();
+      await _tallyVotes();
       await _updatePlayerNotReady();
       Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const CaptionPage()));
