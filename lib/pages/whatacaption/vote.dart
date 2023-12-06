@@ -18,7 +18,7 @@ class _VotePageState extends State<VotePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   List<String> captions = [];
   late Map<dynamic, dynamic> captionsData;
-  late String? _imageUrl;
+  late String? _imageUrl = null;
   late bool gameReady = false;
   late bool ready = false;
 

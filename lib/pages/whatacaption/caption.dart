@@ -18,7 +18,7 @@ class CaptionPage extends StatefulWidget {
 class _CaptionPageState extends State<CaptionPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final TextEditingController _commentController = TextEditingController();
-  late String? _imageUrl;
+  late String? _imageUrl = null;
   late bool ready = false;
 
   ///Check if the last page was vote then remove captions and the image
