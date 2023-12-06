@@ -39,7 +39,8 @@ class _CreateVibeQRPageState extends State<CreateVibeQRPage> {
 
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child(serverId!);
     await serverRef.update({
-      'gameStage': 1
+      'gameStage': 1,
+      'round': 1
     });
   }
 

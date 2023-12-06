@@ -168,7 +168,7 @@ class _UploadPageState extends State<UploadPage> {
 
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
     await serverRef.update({
-      'gameStage': 2
+      'gameStage': 2,
     });
   }
 
