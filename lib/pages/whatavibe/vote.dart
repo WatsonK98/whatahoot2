@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:whatahoot2/pages/whatavibe/win.dart';
+import 'package:whatahoot2/pages/whatavibe/upload.dart';
 
 ///Created By Alexander Watson
 
@@ -76,7 +78,6 @@ class _VotePageState extends State<VotePage> {
     String? serverId = prefs.getString('joinCode');
 
     DatabaseReference serverRef = FirebaseDatabase.instance.ref().child('$serverId');
-    final roundRef = await serverRef.child('round').get();
     await serverRef.update({
       'gameStage': 2,
       'round': ServerValue.increment(1)
@@ -95,8 +96,10 @@ class _VotePageState extends State<VotePage> {
 
     if (snapshot.value == playerCount) {
       await _updateGameStage();
+      await _checkRound();
       await _updatePlayerNotReady();
-      //Navigate
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const UploadPage()));
     }
   }
 
@@ -104,9 +107,15 @@ class _VotePageState extends State<VotePage> {
     SharedPreferences prefs = await _prefs;
 
     String? serverId = prefs.getString('joinCode');
+    int playerCount = prefs.getInt('playerCount') ?? 0;
 
     DatabaseReference roundRef = FirebaseDatabase.instance.ref().child('$serverId/round');
     final round = await roundRef.get();
+
+    if (round.value == (playerCount*3)) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const WinPage()));
+    }
   }
 
   ///If not the host then await for stage change
